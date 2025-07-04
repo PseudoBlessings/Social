@@ -135,3 +135,16 @@ export function createTables(db: Database): Promise<void> {
     });
 }
 
+export function addSocialAccount(db: Database, username: string, password: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const accountId = crypto.randomUUID();
+        const sql = `INSERT INTO "Social Accounts" (account_id, username, password) VALUES (?, ?, ?)`;
+        db.run(sql, [accountId, username, password], function(err) {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(accountId);
+            }
+        });
+    });
+}
