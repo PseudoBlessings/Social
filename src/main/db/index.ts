@@ -135,7 +135,7 @@ export function createTables(db: Database): Promise<void> {
     });
 }
 
-export function addSocialAccount(db: Database, username: string, password: string): Promise<string> {
+export function addSocialAccount(db: Database, username: string, password?: string): Promise<string> {
     return new Promise((resolve, reject) => {
         const accountId = crypto.randomUUID();
         const sql = `INSERT INTO "Social Accounts" (account_id, username, password) VALUES (?, ?, ?)`;
@@ -178,6 +178,43 @@ export function getSocialAccount(db: Database, accountId: string): Promise<any> 
                 reject(new Error('No account found'));
             } else {
                 resolve(row);
+            }
+        });
+    });
+}
+
+export function updateSocialAccount(db: Database, accountId: string, username?: string, password?: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+        if (!accountId) {
+            return reject(new Error('accountId must be provided'));
+        }
+
+        const updates = [];
+        const params = [];
+
+        if (username) {
+            updates.push('username = ?');
+            params.push(username);
+        }
+        if (password) {
+            updates.push('password = ?');
+            params.push(password);
+        }
+
+        if (updates.length === 0) {
+            return resolve(); // No updates to perform
+        }
+
+        params.push(accountId); // accountId should be last
+
+        const sql = `UPDATE "Social Accounts" SET ${updates.join(', ')} WHERE account_id = ?`;
+        db.run(sql, params, function(err) {
+            if (err) {
+                reject(err);
+            } else if (this.changes === 0) {
+                reject(new Error('No rows updated'));
+            } else {
+                resolve();
             }
         });
     });

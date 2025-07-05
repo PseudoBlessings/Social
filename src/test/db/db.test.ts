@@ -1,4 +1,4 @@
-import {initializeDatabase, createTables, addSocialAccount, deleteSocialAccount, getSocialAccount} from '../../main/db/index';
+import {initializeDatabase, createTables, addSocialAccount, deleteSocialAccount, getSocialAccount, updateSocialAccount} from '../../main/db/index';
 import fs from 'fs';
 import {Database} from 'sqlite3';
 import crypto from 'crypto';
@@ -93,5 +93,35 @@ describe('Database Social Accounts Table Functionality', () => {
             console.error("Error getting social account:", err);
         });
     });
+
+    test('Updating Social Account in Database', (done) => {
+        let account_id: any;
+        addSocialAccount(db, 'testuser', 'testpassword').then((id) => {
+            account_id = id;
+            return updateSocialAccount(db, account_id, 'newuser', 'newpassword');
+        }).then(() => {
+            return getSocialAccount(db, account_id);
+        }).then((row:any) => {
+            expect(row).toBeDefined();
+            expect(row.account_id).toBe(account_id);
+            expect(row.username).toBe('newuser');
+            expect(row.password).toBe('newpassword');
+            done();
+        }).catch((err) => {
+            console.error("Error updating social account:", err);
+        });
+    });
+
+    test('Getting Non-Existent Social Account from Database', (done) => {
+        getSocialAccount(db, 'nonexistent_id').then(() => {
+            done(new Error("Expected error for non-existent account"));
+        }).catch((err) => {
+            expect(err).toBeDefined();
+            expect(err.message).toBe('No account found');
+            done();
+        });
+    });
+
+
 });
 
