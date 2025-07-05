@@ -148,3 +148,18 @@ export function addSocialAccount(db: Database, username: string, password: strin
         });
     });
 }
+
+export function deleteSocialAccount(db: Database, accountId: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+        const sql = `DELETE FROM "Social Accounts" WHERE account_id = ?`;
+        db.run(sql, [accountId], function(err) {
+            if (err) {
+                reject(err);
+            } else if (this.changes === 0) {
+                reject(new Error('No rows deleted'));
+            } else {
+                resolve();
+            }
+        });
+    });
+}

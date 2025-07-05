@@ -1,4 +1,4 @@
-import {initializeDatabase, createTables} from '../../main/db/index';
+import {initializeDatabase, createTables, addSocialAccount} from '../../main/db/index';
 import fs from 'fs';
 import {Database} from 'sqlite3';
 import crypto from 'crypto';
@@ -40,19 +40,17 @@ test('Create Tables Test', (done) => {
 });
 
 test('Adding Social Account to Database', (done) => {
-    const sql:string = `INSERT INTO "Social Accounts" (account_id, username, password) VALUES (?, ?, ?)`;
-    const account_id = crypto.randomUUID();
-    const params = [account_id, 'testuser', 'testpassword'];
-    db.run(sql, params, function(err) {
-        expect(err).toBeNull();
-        expect(this.changes).toBe(1);
-    });
-    db.get(`SELECT * FROM "Social Accounts" WHERE account_id = ?`, [account_id], (err, row:any) => {
+    addSocialAccount(db, 'testuser', 'testpassword').then((account_id) => {
+        expect(account_id).toBeDefined();
+        db.get(`SELECT * FROM "Social Accounts" WHERE account_id = ?`, [account_id], (err, row:any) => {
         expect(err).toBeNull();
         expect(row).toBeDefined();
         expect(row.account_id).toBe(account_id);
         expect(row.username).toBe('testuser');
         expect(row.password).toBe('testpassword');
         done();
+    });
+    }).catch((err) => {
+        console.error("Error adding social account:", err);
     });
 });
