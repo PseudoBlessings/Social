@@ -1,4 +1,4 @@
-import {initializeDatabase, createTables, addSocialAccount, deleteSocialAccount} from '../../main/db/index';
+import {initializeDatabase, createTables, addSocialAccount, deleteSocialAccount, getSocialAccount} from '../../main/db/index';
 import fs from 'fs';
 import {Database} from 'sqlite3';
 import crypto from 'crypto';
@@ -75,6 +75,22 @@ describe('Database Social Accounts Table Functionality', () => {
             });
         }).catch((err) => {
             console.error("Error deleting social account:", err);
+        });
+    });
+
+    test('Getting Social Account from Database', (done) => {
+        let account_id: any;
+        addSocialAccount(db, 'testuser', 'testpassword').then((id) => {
+            account_id = id;
+            return getSocialAccount(db, account_id);
+        }).then((row:any) => {
+            expect(row).toBeDefined();
+            expect(row.account_id).toBe(account_id);
+            expect(row.username).toBe('testuser');
+            expect(row.password).toBe('testpassword');
+            done();
+        }).catch((err) => {
+            console.error("Error getting social account:", err);
         });
     });
 });

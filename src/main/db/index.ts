@@ -95,7 +95,7 @@ export function createTables(db: Database): Promise<void> {
                     PRIMARY KEY (session_id));,`,
                 `CREATE TABLE "Social Accounts" (
                     account_id text NOT NULL,
-                    username   text NOT NULL,
+                    username   text NOT NULL UNIQUE,
                     password   text,
                     PRIMARY KEY (account_id));`,
                 `CREATE TABLE Stories (
@@ -159,6 +159,25 @@ export function deleteSocialAccount(db: Database, accountId: string): Promise<vo
                 reject(new Error('No rows deleted'));
             } else {
                 resolve();
+            }
+        });
+    });
+}
+
+export function getSocialAccount(db: Database, accountId: string): Promise<any> {
+    return new Promise((resolve, reject) => {
+        if (!accountId) {
+            return reject(new Error('accountId must be provided'));
+        }
+
+        const sql = `SELECT * FROM "Social Accounts" WHERE account_id = ?`;
+        db.get(sql, [accountId], (err, row) => {
+            if (err) {
+                reject(err);
+            } else if (!row) {
+                reject(new Error('No account found'));
+            } else {
+                resolve(row);
             }
         });
     });
