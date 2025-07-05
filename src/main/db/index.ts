@@ -1,6 +1,12 @@
 import {Database} from 'sqlite3';
 import crypto from 'crypto';
 
+export interface SocialAccount {
+    account_id: string;
+    username: string;
+    password: string|null;
+}
+
 export function initializeDatabase(databasePath: string): Promise<Database> {
     return new Promise((resolve, reject) => {
         const db = new Database(databasePath, (err) =>{
@@ -164,14 +170,14 @@ export function deleteSocialAccount(db: Database, accountId: string): Promise<vo
     });
 }
 
-export function getSocialAccount(db: Database, accountId: string): Promise<any> {
+export function getSocialAccount(db: Database, accountId: string): Promise<SocialAccount> {
     return new Promise((resolve, reject) => {
         if (!accountId) {
             return reject(new Error('accountId must be provided'));
         }
 
         const sql = `SELECT * FROM "Social Accounts" WHERE account_id = ?`;
-        db.get(sql, [accountId], (err, row) => {
+        db.get(sql, [accountId], (err, row: SocialAccount) => {
             if (err) {
                 reject(err);
             } else if (!row) {
@@ -215,6 +221,21 @@ export function updateSocialAccount(db: Database, accountId: string, username?: 
                 reject(new Error('No rows updated'));
             } else {
                 resolve();
+            }
+        });
+    });
+}
+
+export function loginSocialAccount(db: Database, username: string, password: string): Promise<SocialAccount> {
+    return new Promise((resolve, reject) => {
+        const sql = `SELECT * FROM "Social Accounts" WHERE username = ? AND password = ?`;
+        db.get(sql, [username, password], (err, row: SocialAccount) => {
+            if (err) {
+                reject(err);
+            } else if (!row) {
+                reject(new Error('Invalid username or password'));
+            } else {
+                resolve(row);
             }
         });
     });

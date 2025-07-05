@@ -1,7 +1,8 @@
-import {initializeDatabase, createTables, addSocialAccount, deleteSocialAccount, getSocialAccount, updateSocialAccount} from '../../main/db/index';
+import {initializeDatabase, createTables, addSocialAccount, deleteSocialAccount, getSocialAccount, updateSocialAccount, loginSocialAccount} from '../../main/db/index';
+import {SocialAccount} from '../../main/db/index';
 import fs from 'fs';
 import {Database} from 'sqlite3';
-import crypto from 'crypto';
+import crypto from 'crypto';    
 const dbPath = __dirname + '/db_test.sqlite';
 let db: Database;
 
@@ -65,7 +66,7 @@ describe('Database Social Accounts Table Functionality', () => {
     test('Adding Social Account with Empty Password', (done) => {
         addSocialAccount(db, 'testuser').then((account_id) => {
             expect(account_id).toBeDefined();
-            db.get(`SELECT * FROM "Social Accounts" WHERE account_id = ?`, [account_id], (err, row:any) => {
+            db.get(`SELECT * FROM "Social Accounts" WHERE account_id = ?`, [account_id], (err, row:SocialAccount) => {
                 expect(err).toBeNull();
                 expect(row).toBeDefined();
                 expect(row.account_id).toBe(account_id);
@@ -84,7 +85,7 @@ describe('Database Social Accounts Table Functionality', () => {
             account_id = id;
             return deleteSocialAccount(db, account_id);
         }).then(() => {
-            db.get(`SELECT * FROM "Social Accounts" WHERE account_id = ?`, [account_id], (err, row:any) => {
+            db.get(`SELECT * FROM "Social Accounts" WHERE account_id = ?`, [account_id], (err, row:SocialAccount) => {
                 expect(err).toBeNull();
                 expect(row).toBeUndefined();
                 done();
@@ -109,7 +110,7 @@ describe('Database Social Accounts Table Functionality', () => {
         addSocialAccount(db, 'testuser', 'testpassword').then((id) => {
             account_id = id;
             return getSocialAccount(db, account_id);
-        }).then((row:any) => {
+        }).then((row:SocialAccount) => {
             expect(row).toBeDefined();
             expect(row.account_id).toBe(account_id);
             expect(row.username).toBe('testuser');
@@ -141,13 +142,13 @@ describe('Database Social Accounts Table Functionality', () => {
     });
 
     test('Updating Social Account in Database', (done) => {
-        let account_id: any;
+        let account_id: string;
         addSocialAccount(db, 'testuser', 'testpassword').then((id) => {
             account_id = id;
             return updateSocialAccount(db, account_id, 'newuser', 'newpassword');
         }).then(() => {
             return getSocialAccount(db, account_id);
-        }).then((row:any) => {
+        }).then((row:SocialAccount) => {
             expect(row).toBeDefined();
             expect(row.account_id).toBe(account_id);
             expect(row.username).toBe('newuser');
@@ -166,4 +167,30 @@ describe('Database Social Accounts Table Functionality', () => {
             done();
         });
     });
+
+    test('Login Social Account with Valid Credentials', (done) => {
+        addSocialAccount(db, 'testuser', 'testpassword').then((account_id) => {
+            return loginSocialAccount(db, 'testuser', 'testpassword');
+        }).then((row:SocialAccount) => {
+            expect(row).toBeDefined();
+            expect(row.username).toBe('testuser');
+            expect(row.password).toBe('testpassword');
+            done();
+        }).catch((err) => {
+            console.error("Error logging in social account:", err);
+        });
+    });
+
+    test('Login Social Account with Invalid Credentials', (done) => {
+        addSocialAccount(db, 'testuser', 'testpassword').then(() => {
+            return loginSocialAccount(db, 'testuser', 'wrongpassword');
+        }).then(() => {
+            done(new Error("Expected error for invalid credentials"));
+        }).catch((err) => {
+            expect(err).toBeDefined();
+            expect(err.message).toBe('Invalid username or password');
+            done();
+        });
+    });
 });
+
