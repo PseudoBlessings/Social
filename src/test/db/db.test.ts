@@ -62,6 +62,22 @@ describe('Database Social Accounts Table Functionality', () => {
         });
     });
 
+    test('Adding Social Account with Empty Password', (done) => {
+        addSocialAccount(db, 'testuser').then((account_id) => {
+            expect(account_id).toBeDefined();
+            db.get(`SELECT * FROM "Social Accounts" WHERE account_id = ?`, [account_id], (err, row:any) => {
+                expect(err).toBeNull();
+                expect(row).toBeDefined();
+                expect(row.account_id).toBe(account_id);
+                expect(row.username).toBe('testuser');
+                expect(row.password).toBeNull();
+                done();
+            });
+        }).catch((err) => {
+            console.error("Error adding social account:", err);
+        });
+    });
+
     test('Deleting Social Account from Database', (done) => {
         let account_id: any;
         addSocialAccount(db, 'testuser', 'testpassword').then((id) => {
@@ -75,6 +91,16 @@ describe('Database Social Accounts Table Functionality', () => {
             });
         }).catch((err) => {
             console.error("Error deleting social account:", err);
+        });
+    });
+
+    test('Deleting Non-Existent Social Account from Database', (done) => {
+        deleteSocialAccount(db, 'nonexistent_id').then(() => {
+            done(new Error("Expected error for non-existent account"));
+        }).catch((err) => {
+            expect(err).toBeDefined();
+            expect(err.message).toBe('No rows deleted');
+            done();
         });
     });
 
@@ -129,6 +155,15 @@ describe('Database Social Accounts Table Functionality', () => {
             done();
         }).catch((err) => {
             console.error("Error updating social account:", err);
+        });
+    });
+    test('Updating Social Account with Empty ID', (done) => {
+        updateSocialAccount(db, '', 'newuser', 'newpassword').then(() => {
+            done(new Error("Expected error for empty account ID"));
+        }).catch((err) => {
+            expect(err).toBeDefined();
+            expect(err.message).toBe('accountId must be provided');
+            done();
         });
     });
 });
