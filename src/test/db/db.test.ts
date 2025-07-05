@@ -94,6 +94,26 @@ describe('Database Social Accounts Table Functionality', () => {
         });
     });
 
+    test('Getting Non-Existent Social Account from Database', (done) => {
+        getSocialAccount(db, 'nonexistent_id').then(() => {
+            done(new Error("Expected error for non-existent account"));
+        }).catch((err) => {
+            expect(err).toBeDefined();
+            expect(err.message).toBe('No account found');
+            done();
+        });
+    });
+
+    test('Getting Social Account with Empty ID', (done) => {
+        getSocialAccount(db, '').then(() => {
+            done(new Error("Expected error for empty account ID"));
+        }).catch((err) => {
+            expect(err).toBeDefined();
+            expect(err.message).toBe('accountId must be provided');
+            done();
+        });
+    });
+
     test('Updating Social Account in Database', (done) => {
         let account_id: any;
         addSocialAccount(db, 'testuser', 'testpassword').then((id) => {
@@ -111,17 +131,4 @@ describe('Database Social Accounts Table Functionality', () => {
             console.error("Error updating social account:", err);
         });
     });
-
-    test('Getting Non-Existent Social Account from Database', (done) => {
-        getSocialAccount(db, 'nonexistent_id').then(() => {
-            done(new Error("Expected error for non-existent account"));
-        }).catch((err) => {
-            expect(err).toBeDefined();
-            expect(err.message).toBe('No account found');
-            done();
-        });
-    });
-
-
 });
-
