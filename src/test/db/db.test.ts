@@ -1,5 +1,5 @@
-import {initializeDatabase, createTables, addSocialAccount, deleteSocialAccount, getSocialAccount, updateSocialAccount, loginSocialAccount} from '../../main/db/index';
-import {SocialAccount} from '../../main/db/index';
+import * as dbFunctions from '../../main/db/index';
+import { SocialAccountInterface } from '../../main/db/index';
 import fs from 'fs';
 import {Database} from 'sqlite3';
 import crypto from 'crypto';    
@@ -9,8 +9,8 @@ let db: Database;
 beforeAll(async () => {
     if(fs.existsSync(dbPath))
         fs.unlinkSync(dbPath);
-    db = await initializeDatabase(dbPath);
-    await createTables(db);
+    db = await dbFunctions.initializeDatabase(dbPath);
+    await dbFunctions.createTables(db);
 });
 
 afterAll((done) => {
@@ -48,9 +48,9 @@ describe('Database Social Accounts Table Functionality', () => {
         });
     });
     test('Adding Social Account to Database', (done) => {
-        addSocialAccount(db, 'testuser', 'testpassword').then((account_id) => {
+        dbFunctions.SocialAccount.addSocialAccount(db, 'testuser', 'testpassword').then((account_id) => {
             expect(account_id).toBeDefined();
-            db.get(`SELECT * FROM "Social Accounts" WHERE account_id = ?`, [account_id], (err, row:any) => {
+            db.get(`SELECT * FROM "Social Accounts" WHERE account_id = ?`, [account_id], (err, row: SocialAccountInterface) => {
             expect(err).toBeNull();
             expect(row).toBeDefined();
             expect(row.account_id).toBe(account_id);
@@ -64,9 +64,9 @@ describe('Database Social Accounts Table Functionality', () => {
     });
 
     test('Adding Social Account with Empty Password', (done) => {
-        addSocialAccount(db, 'testuser').then((account_id) => {
+        dbFunctions.SocialAccount.addSocialAccount(db, 'testuser').then((account_id) => {
             expect(account_id).toBeDefined();
-            db.get(`SELECT * FROM "Social Accounts" WHERE account_id = ?`, [account_id], (err, row:SocialAccount) => {
+            db.get(`SELECT * FROM "Social Accounts" WHERE account_id = ?`, [account_id], (err, row: SocialAccountInterface) => {
                 expect(err).toBeNull();
                 expect(row).toBeDefined();
                 expect(row.account_id).toBe(account_id);
@@ -81,11 +81,11 @@ describe('Database Social Accounts Table Functionality', () => {
 
     test('Deleting Social Account from Database', (done) => {
         let account_id: any;
-        addSocialAccount(db, 'testuser', 'testpassword').then((id) => {
+        dbFunctions.SocialAccount.addSocialAccount(db, 'testuser', 'testpassword').then((id) => {
             account_id = id;
-            return deleteSocialAccount(db, account_id);
+            return dbFunctions.SocialAccount.deleteSocialAccount(db, account_id);
         }).then(() => {
-            db.get(`SELECT * FROM "Social Accounts" WHERE account_id = ?`, [account_id], (err, row:SocialAccount) => {
+            db.get(`SELECT * FROM "Social Accounts" WHERE account_id = ?`, [account_id], (err, row: SocialAccountInterface) => {
                 expect(err).toBeNull();
                 expect(row).toBeUndefined();
                 done();
@@ -96,7 +96,7 @@ describe('Database Social Accounts Table Functionality', () => {
     });
 
     test('Deleting Non-Existent Social Account from Database', (done) => {
-        deleteSocialAccount(db, 'nonexistent_id').then(() => {
+        dbFunctions.SocialAccount.deleteSocialAccount(db, 'nonexistent_id').then(() => {
             done(new Error("Expected error for non-existent account"));
         }).catch((err) => {
             expect(err).toBeDefined();
@@ -107,10 +107,10 @@ describe('Database Social Accounts Table Functionality', () => {
 
     test('Getting Social Account from Database', (done) => {
         let account_id: any;
-        addSocialAccount(db, 'testuser', 'testpassword').then((id) => {
+        dbFunctions.SocialAccount.addSocialAccount(db, 'testuser', 'testpassword').then((id) => {
             account_id = id;
-            return getSocialAccount(db, account_id);
-        }).then((row:SocialAccount) => {
+            return dbFunctions.SocialAccount.getSocialAccount(db, account_id);
+        }).then((row: SocialAccountInterface) => {
             expect(row).toBeDefined();
             expect(row.account_id).toBe(account_id);
             expect(row.username).toBe('testuser');
@@ -122,7 +122,7 @@ describe('Database Social Accounts Table Functionality', () => {
     });
 
     test('Getting Non-Existent Social Account from Database', (done) => {
-        getSocialAccount(db, 'nonexistent_id').then(() => {
+        dbFunctions.SocialAccount.getSocialAccount(db, 'nonexistent_id').then(() => {
             done(new Error("Expected error for non-existent account"));
         }).catch((err) => {
             expect(err).toBeDefined();
@@ -132,7 +132,7 @@ describe('Database Social Accounts Table Functionality', () => {
     });
 
     test('Getting Social Account with Empty ID', (done) => {
-        getSocialAccount(db, '').then(() => {
+        dbFunctions.SocialAccount.getSocialAccount(db, '').then(() => {
             done(new Error("Expected error for empty account ID"));
         }).catch((err) => {
             expect(err).toBeDefined();
@@ -143,12 +143,12 @@ describe('Database Social Accounts Table Functionality', () => {
 
     test('Updating Social Account in Database', (done) => {
         let account_id: string;
-        addSocialAccount(db, 'testuser', 'testpassword').then((id) => {
+        dbFunctions.SocialAccount.addSocialAccount(db, 'testuser', 'testpassword').then((id) => {
             account_id = id;
-            return updateSocialAccount(db, account_id, 'newuser', 'newpassword');
+            return dbFunctions.SocialAccount.updateSocialAccount(db, account_id, 'newuser', 'newpassword');
         }).then(() => {
-            return getSocialAccount(db, account_id);
-        }).then((row:SocialAccount) => {
+            return dbFunctions.SocialAccount.getSocialAccount(db, account_id);
+        }).then((row: SocialAccountInterface) => {
             expect(row).toBeDefined();
             expect(row.account_id).toBe(account_id);
             expect(row.username).toBe('newuser');
@@ -159,7 +159,7 @@ describe('Database Social Accounts Table Functionality', () => {
         });
     });
     test('Updating Social Account with Empty ID', (done) => {
-        updateSocialAccount(db, '', 'newuser', 'newpassword').then(() => {
+        dbFunctions.SocialAccount.updateSocialAccount(db, '', 'newuser', 'newpassword').then(() => {
             done(new Error("Expected error for empty account ID"));
         }).catch((err) => {
             expect(err).toBeDefined();
@@ -169,9 +169,9 @@ describe('Database Social Accounts Table Functionality', () => {
     });
 
     test('Login Social Account with Valid Credentials', (done) => {
-        addSocialAccount(db, 'testuser', 'testpassword').then((account_id) => {
-            return loginSocialAccount(db, 'testuser', 'testpassword');
-        }).then((row:SocialAccount) => {
+        dbFunctions.SocialAccount.addSocialAccount(db, 'testuser', 'testpassword').then((account_id) => {
+            return dbFunctions.SocialAccount.loginSocialAccount(db, 'testuser', 'testpassword');
+        }).then((row: SocialAccountInterface) => {
             expect(row).toBeDefined();
             expect(row.username).toBe('testuser');
             expect(row.password).toBe('testpassword');
@@ -182,8 +182,8 @@ describe('Database Social Accounts Table Functionality', () => {
     });
 
     test('Login Social Account with Invalid Credentials', (done) => {
-        addSocialAccount(db, 'testuser', 'testpassword').then(() => {
-            return loginSocialAccount(db, 'testuser', 'wrongpassword');
+        dbFunctions.SocialAccount.addSocialAccount(db, 'testuser', 'testpassword').then(() => {
+            return dbFunctions.SocialAccount.loginSocialAccount(db, 'testuser', 'wrongpassword');
         }).then(() => {
             done(new Error("Expected error for invalid credentials"));
         }).catch((err) => {
