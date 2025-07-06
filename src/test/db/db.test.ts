@@ -1,8 +1,7 @@
 import * as dbFunctions from '../../main/db/index';
 import { SocialAccountInterface } from '../../main/db/index';
 import fs from 'fs';
-import {Database} from 'sqlite3';
-import crypto from 'crypto';    
+import {Database} from 'sqlite3';  
 const dbPath = __dirname + '/db_test.sqlite';
 let db: Database;
 
