@@ -30,14 +30,27 @@ export function addAccount(db: Database, account_id: string, social_account_id: 
     });
 }
 
-export function deleteAccount(db: Database, account_id: string, platform_id: string): Promise<void> {
+export function deleteAccount(db: Database, account_id: string, platform_id: string): Promise<boolean> {
     return new Promise((resolve, reject) => {
         const sql = `DELETE FROM Accounts WHERE account_id = ? AND platform_id = ?`;
         db.run(sql, [account_id, platform_id], function (err) {
             if (err) {
                 reject(err);
             } else {
-                resolve();
+                resolve(this.changes > 0 ? true : false); // Return the number of rows deleted
+            }
+        });
+    });
+}
+
+export function getAccount(db: Database, account_id: string, platform_id: string): Promise<AccountInterface | null> {
+    return new Promise((resolve, reject) => {
+        const sql = `SELECT * FROM Accounts WHERE account_id = ? AND platform_id = ?`;
+        db.get(sql, [account_id, platform_id], (err, row: AccountInterface) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(row || null);
             }
         });
     });

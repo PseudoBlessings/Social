@@ -7,7 +7,7 @@ export interface SocialAccountInterface {
     password: string|null;
 }
 
-export function addSocialAccount(db: Database, username: string, password?: string): Promise<string> {
+export function addSocialAccount(db: Database, username: string, password?: string): Promise<SocialAccountInterface> {
     return new Promise((resolve, reject) => {
         const accountId = crypto.randomUUID();
         const sql = `INSERT INTO "Social Accounts" (account_id, username, password) VALUES (?, ?, ?)`;
@@ -15,7 +15,13 @@ export function addSocialAccount(db: Database, username: string, password?: stri
             if (err) {
                 reject(err);
             } else {
-                resolve(accountId);
+                // Return the newly created social account
+                const newAccount: SocialAccountInterface = {
+                    account_id: accountId,
+                    username: username,
+                    password: password || null
+                };
+                resolve(newAccount);
             }
         });
     });

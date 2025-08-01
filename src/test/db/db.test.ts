@@ -41,48 +41,56 @@ test('Create Tables Test', (done) => {
 });
 
 describe('Database Social Accounts Table Functionality', () => {
-    afterEach(()=>{
+    afterEach(async () => {
         // Ensure the "Social Accounts" table is empty after each test
-        db.run(`DELETE FROM "Social Accounts"`, [], (err) => {
-            expect(err).toBeNull();
+        await new Promise<void>((resolve, reject) => { 
+            db.run(`DELETE FROM "Social Accounts"`, [], (err) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve();
+                }
+            });
         });
     });
     test('Adding Social Account to Database', (done) => {
-        dbFunctions.SocialAccount.addSocialAccount(db, 'testuser', 'testpassword').then((account_id) => {
-            expect(account_id).toBeDefined();
-            db.get(`SELECT * FROM "Social Accounts" WHERE account_id = ?`, [account_id], (err, row: SocialAccountInterface) => {
+        dbFunctions.SocialAccount.addSocialAccount(db, 'testuser', 'testpassword').then((socialaccountinterface) => {
+            expect(socialaccountinterface.account_id).toBeDefined();
+            db.get(`SELECT * FROM "Social Accounts" WHERE account_id = ?`, [socialaccountinterface.account_id], (err, row: SocialAccountInterface) => {
             expect(err).toBeNull();
             expect(row).toBeDefined();
-            expect(row.account_id).toBe(account_id);
+            expect(row.account_id).toBe(socialaccountinterface.account_id);
             expect(row.username).toBe('testuser');
             expect(row.password).toBe('testpassword');
             done();
         });
         }).catch((err) => {
             console.error("Error adding social account:", err);
+            done(err);
         });
     });
 
     test('Adding Social Account with Empty Password', (done) => {
-        dbFunctions.SocialAccount.addSocialAccount(db, 'testuser').then((account_id) => {
-            expect(account_id).toBeDefined();
-            db.get(`SELECT * FROM "Social Accounts" WHERE account_id = ?`, [account_id], (err, row: SocialAccountInterface) => {
+        dbFunctions.SocialAccount.addSocialAccount(db, 'testuser').then((socialaccountinterface) => {
+            expect(socialaccountinterface.account_id).toBeDefined();
+            db.get(`SELECT * FROM "Social Accounts" WHERE account_id = ?`, [socialaccountinterface.account_id], (err, row: SocialAccountInterface) => {
                 expect(err).toBeNull();
                 expect(row).toBeDefined();
-                expect(row.account_id).toBe(account_id);
+                expect(row.account_id).toBe(socialaccountinterface.account_id);
                 expect(row.username).toBe('testuser');
                 expect(row.password).toBeNull();
                 done();
             });
         }).catch((err) => {
             console.error("Error adding social account:", err);
+            done(err);
         });
     });
 
     test('Deleting Social Account from Database', (done) => {
         let account_id: any;
-        dbFunctions.SocialAccount.addSocialAccount(db, 'testuser', 'testpassword').then((id) => {
-            account_id = id;
+        dbFunctions.SocialAccount.addSocialAccount(db, 'testuser', 'testpassword').then((socialaccountinterface) => {
+            account_id = socialaccountinterface.account_id;
             return dbFunctions.SocialAccount.deleteSocialAccount(db, account_id);
         }).then(() => {
             db.get(`SELECT * FROM "Social Accounts" WHERE account_id = ?`, [account_id], (err, row: SocialAccountInterface) => {
@@ -92,6 +100,7 @@ describe('Database Social Accounts Table Functionality', () => {
             });
         }).catch((err) => {
             console.error("Error deleting social account:", err);
+            done(err);
         });
     });
 
@@ -107,8 +116,8 @@ describe('Database Social Accounts Table Functionality', () => {
 
     test('Getting Social Account from Database', (done) => {
         let account_id: any;
-        dbFunctions.SocialAccount.addSocialAccount(db, 'testuser', 'testpassword').then((id) => {
-            account_id = id;
+        dbFunctions.SocialAccount.addSocialAccount(db, 'testuser', 'testpassword').then((socialaccountinterface) => {
+            account_id = socialaccountinterface.account_id;
             return dbFunctions.SocialAccount.getSocialAccount(db, account_id);
         }).then((row: SocialAccountInterface) => {
             expect(row).toBeDefined();
@@ -118,6 +127,7 @@ describe('Database Social Accounts Table Functionality', () => {
             done();
         }).catch((err) => {
             console.error("Error getting social account:", err);
+            done(err);
         });
     });
 
@@ -143,8 +153,8 @@ describe('Database Social Accounts Table Functionality', () => {
 
     test('Updating Social Account in Database', (done) => {
         let account_id: string;
-        dbFunctions.SocialAccount.addSocialAccount(db, 'testuser', 'testpassword').then((id) => {
-            account_id = id;
+        dbFunctions.SocialAccount.addSocialAccount(db, 'testuser', 'testpassword').then((socialaccountinterface) => {
+            account_id = socialaccountinterface.account_id;
             return dbFunctions.SocialAccount.updateSocialAccount(db, account_id, 'newuser', 'newpassword');
         }).then(() => {
             return dbFunctions.SocialAccount.getSocialAccount(db, account_id);
@@ -288,6 +298,33 @@ describe('Database Accounts Table Functionality', () => {
             });
         }).catch((err) => {
             console.error("Error deleting account:", err);
+            done(err);
+        });
+    });
+    test('Deleting Non-Existent Account from Database', (done) => {
+        dbFunctions.Account.deleteAccount(db, 'nonexistent_account', 'platform_1').then((accountDeleted) => {
+            expect(accountDeleted).toBe(false);
+            done();
+        }).catch((err) => {
+            console.error("Error deleting non-existent account:", err);
+            done(err);
+        });
+    });
+    test('Getting Account from Database', (done) => {
+        let account_id: string;
+        dbFunctions.Account.addAccount(db, 'account_1', 'social_account_1', 'platform_1', 'session_1').then((accountinterface) => {
+            account_id = accountinterface.account_id;
+            return dbFunctions.Account.getAccount(db, account_id, 'platform_1');
+        }).then((row: AccountInterface) => {
+            expect(row).toBeDefined();
+            expect(row.account_id).toBe(account_id);
+            expect(row.social_account_id).toBe('social_account_1');
+            expect(row.platform_id).toBe('platform_1');
+            expect(row.session_id).toBe('session_1');
+            done();
+        }).catch((err) => {
+            console.error("Error getting account:", err);
+            done(err);
         });
     });
 });
