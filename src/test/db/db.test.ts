@@ -1,8 +1,9 @@
 import * as dbFunctions from '../../main/db/index';
 import { SocialAccountInterface } from '../../main/db/index';
+import { AccountInterface } from '../../main/db/index';
 import fs from 'fs';
 import {Database} from 'sqlite3';  
-const dbPath = __dirname + '/db_test.sqlite';
+const dbPath = ':memory:';
 let db: Database;
 
 beforeAll(async () => {
@@ -40,8 +41,8 @@ test('Create Tables Test', (done) => {
 });
 
 describe('Database Social Accounts Table Functionality', () => {
-    beforeEach(()=>{
-        // Ensure the "Social Accounts" table is empty before each test
+    afterEach(()=>{
+        // Ensure the "Social Accounts" table is empty after each test
         db.run(`DELETE FROM "Social Accounts"`, [], (err) => {
             expect(err).toBeNull();
         });
@@ -193,3 +194,85 @@ describe('Database Social Accounts Table Functionality', () => {
     });
 });
 
+describe('Database Accounts Table Functionality', () => {
+    beforeAll(async () => {
+        // make sure foreign key constraints are fulfilled for " Accounts" table
+        await new Promise<void>((resolve, reject) => {
+            db.run(`CREATE TABLE IF NOT EXISTS "Social Accounts" (
+                account_id text NOT NULL,
+                username   text NOT NULL UNIQUE,
+                password   text,
+                PRIMARY KEY (account_id)
+            );`, (err) => err ? reject(err) : resolve());
+        });
+        await new Promise<void>((resolve, reject) => {
+            db.run(`CREATE TABLE IF NOT EXISTS Sessions (
+                session_id text NOT NULL,
+                token      text,
+                PRIMARY KEY (session_id)
+            );`, (err) => err ? reject(err) : resolve());
+        });
+        await new Promise<void>((resolve, reject) => {
+            db.run(`CREATE TABLE IF NOT EXISTS Platforms (
+                platform_id   text NOT NULL,
+                session_id    text NOT NULL,
+                platform_name char(255) NOT NULL UNIQUE,
+                PRIMARY KEY (platform_id),
+                FOREIGN KEY(session_id) REFERENCES Sessions(session_id)
+            );`, (err) => err ? reject(err) : resolve());
+        });
+        await new Promise<void>((resolve, reject) => {
+            db.run(`INSERT OR IGNORE INTO Sessions (session_id, token) VALUES (?, ?)`,
+                ['session_1', 'token_1'], (err) => err ? reject(err) : resolve());
+        });
+        await new Promise<void>((resolve, reject) => {
+            db.run(`INSERT OR IGNORE INTO Platforms (platform_id, session_id, platform_name) VALUES (?, ?, ?)`,
+                ['platform_1', 'session_1', 'Platform One'], (err) => err ? reject(err) : resolve());
+        });
+        await new Promise<void>((resolve, reject) => {
+            db.run(`INSERT OR IGNORE INTO "Social Accounts" (account_id, username, password) VALUES (?, ?, ?)`,
+                ['social_account_1', 'user1', 'pass1'], (err) => err ? reject(err) : resolve());
+        });
+    });
+    afterEach(() => {
+        // Ensure the "Accounts" table is empty before each test
+        db.run(`DELETE FROM Accounts`, [], (err) => {
+            expect(err).toBeNull();
+        });
+    });
+    test('Adding Account to Database', (done) => {
+        dbFunctions.Account.addAccount(db, 'account_1', 'social_account_1', 'platform_1', 'session_1', 'Test User').then((account_id) => {
+            expect(account_id).toBeDefined();
+            db.get(`SELECT * FROM Accounts WHERE account_id = ?`, [account_id], (err, row: AccountInterface) => {
+                expect(err).toBeNull();
+                expect(row).toBeDefined();
+                expect(row.account_id).toBe(account_id);
+                expect(row.social_account_id).toBe('social_account_1');
+                expect(row.platform_id).toBe('platform_1');
+                expect(row.session_id).toBe('session_1');
+                expect(row.display_name).toBe('Test User');
+                done();
+            });
+        }).catch((err) => {
+            console.error("Error adding account:", err);
+        });
+    });
+
+    test('Adding Account with Empty Display Name', (done) => {
+        dbFunctions.Account.addAccount(db, 'account_1', 'social_account_1', 'platform_1', 'session_1').then((account_id) => {
+            expect(account_id).toBeDefined();
+            db.get(`SELECT * FROM Accounts WHERE account_id = ?`, [account_id], (err, row: AccountInterface) => {
+                expect(err).toBeNull();
+                expect(row).toBeDefined();
+                expect(row.account_id).toBe(account_id);
+                expect(row.social_account_id).toBe('social_account_1');
+                expect(row.platform_id).toBe('platform_1');
+                expect(row.session_id).toBe('session_1');
+                expect(row.display_name).toBeNull();
+                done();
+            });
+        }).catch((err) => {
+            console.error("Error adding account with empty display name:", err);
+        });
+    });
+});
