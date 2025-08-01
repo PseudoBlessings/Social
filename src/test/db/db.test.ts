@@ -276,4 +276,18 @@ describe('Database Accounts Table Functionality', () => {
             console.error("Error adding account with empty display name:", err);
         });
     });
+    test('Deleting Account from Database', (done) => {
+        let account_id: string;
+        dbFunctions.Account.addAccount(db, 'account_1', 'social_account_1', 'platform_1', 'session_1').then((accountinterface) => {
+            return dbFunctions.Account.deleteAccount(db, accountinterface.account_id, accountinterface.platform_id);
+        }).then(() => {
+            db.get(`SELECT * FROM Accounts WHERE account_id = ? AND platform_id = ?`, ['account_1', 'platform_1'], (err, row: AccountInterface) => {
+                expect(err).toBeNull();
+                expect(row).toBeUndefined();
+                done();
+            });
+        }).catch((err) => {
+            console.error("Error deleting account:", err);
+        });
+    });
 });
