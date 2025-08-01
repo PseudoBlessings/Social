@@ -327,4 +327,28 @@ describe('Database Accounts Table Functionality', () => {
             done(err);
         });
     });
+    test('Getting Non-Existent Account from Database', (done) => {
+        dbFunctions.Account.getAccount(db, 'nonexistent_account', 'platform_1').then((row: AccountInterface | null) => {
+            expect(row).toBeNull();
+            done();
+        }).catch((err) => {
+            console.error("Error getting non-existent account:", err);
+            done(err);
+        });
+    });
+    test('Updating Account in Database', (done) => {
+        let account_id: string;
+        dbFunctions.Account.addAccount(db, 'account_1', 'social_account_1', 'platform_1', 'session_1').then((accountinterface) => {
+            account_id = accountinterface.account_id;
+            return dbFunctions.Account.updateAccount(db, account_id, 'platform_1', 'Updated User');
+        }).then((updatedAccount: AccountInterface) => {
+            expect(updatedAccount).toBeDefined();
+            expect(updatedAccount.account_id).toBe(account_id);
+            expect(updatedAccount.display_name).toBe('Updated User');
+            done();
+        }).catch((err) => {
+            console.error("Error updating account:", err);
+            done(err);
+        });
+    });
 });

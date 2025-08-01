@@ -27,9 +27,9 @@ export function createTables(db: Database): Promise<void> {
                 session_id        text NOT NULL,
                 display_name      char(255),
                 PRIMARY KEY (account_id, platform_id),
-                FOREIGN KEY(social_account_id) REFERENCES "Social Accounts"(account_id),
-                FOREIGN KEY(platform_id) REFERENCES Platforms(platform_id),
-                FOREIGN KEY(session_id) REFERENCES Sessions(session_id)
+                FOREIGN KEY(social_account_id) REFERENCES "Social Accounts"(account_id) ON DELETE CASCADE ON UPDATE CASCADE,
+                FOREIGN KEY(platform_id) REFERENCES Platforms(platform_id) ON DELETE CASCADE ON UPDATE CASCADE,
+                FOREIGN KEY(session_id) REFERENCES Sessions(session_id) ON DELETE CASCADE ON UPDATE CASCADE
             );`,
             `CREATE TABLE Contacts (
                 contact_id  text NOT NULL,
@@ -45,8 +45,8 @@ export function createTables(db: Database): Promise<void> {
                 contact_id text NOT NULL,
                 user_id    text NOT NULL,
                 PRIMARY KEY (contact_id, user_id),
-                FOREIGN KEY(contact_id) REFERENCES Contacts(contact_id),
-                FOREIGN KEY(user_id) REFERENCES Users(user_id)
+                FOREIGN KEY(contact_id) REFERENCES Contacts(contact_id) ON DELETE CASCADE ON UPDATE CASCADE,
+                FOREIGN KEY(user_id) REFERENCES Users(user_id) ON DELETE CASCADE ON UPDATE CASCADE
             );`,
             `CREATE TABLE "Conversation Users" (
                 user_id              text NOT NULL,
@@ -56,9 +56,9 @@ export function createTables(db: Database): Promise<void> {
                 is_admin             boolean NOT NULL,
                 last_read_message_id text,
                 PRIMARY KEY (user_id, conversation_id),
-                FOREIGN KEY(user_id) REFERENCES Users(user_id),
-                FOREIGN KEY(conversation_id) REFERENCES Conversations(conversation_id),
-                FOREIGN KEY(last_read_message_id) REFERENCES Messages(message_id)
+                FOREIGN KEY(user_id) REFERENCES Users(user_id) ON DELETE CASCADE ON UPDATE CASCADE,
+                FOREIGN KEY(conversation_id) REFERENCES Conversations(conversation_id) ON DELETE CASCADE ON UPDATE CASCADE,
+                FOREIGN KEY(last_read_message_id) REFERENCES Messages(message_id) ON DELETE CASCADE ON UPDATE CASCADE
             );`,
             `CREATE TABLE Conversations (
                 conversation_id     text NOT NULL,
@@ -69,7 +69,7 @@ export function createTables(db: Database): Promise<void> {
                 most_recent_sender  varchar(255),
                 platform_id         text NOT NULL,
                 PRIMARY KEY (conversation_id),
-                FOREIGN KEY(account_id, platform_id) REFERENCES Accounts(account_id, platform_id)
+                FOREIGN KEY(account_id, platform_id) REFERENCES Accounts(account_id, platform_id) ON DELETE CASCADE ON UPDATE CASCADE
             );`,
             `CREATE TABLE Messages (
                 message_id      text NOT NULL,
@@ -81,14 +81,14 @@ export function createTables(db: Database): Promise<void> {
                 media_urls      varchar(255),
                 text            text,
                 PRIMARY KEY (message_id),
-                FOREIGN KEY(conversation_id) REFERENCES Conversations(conversation_id)
+                FOREIGN KEY(conversation_id) REFERENCES Conversations(conversation_id) ON DELETE CASCADE ON UPDATE CASCADE
             );`,
             `CREATE TABLE Platforms (
                 platform_id   text NOT NULL,
                 session_id    text NOT NULL,
                 platform_name char(255) NOT NULL UNIQUE,
                 PRIMARY KEY (platform_id),
-                FOREIGN KEY(session_id) REFERENCES Sessions(session_id)
+                FOREIGN KEY(session_id) REFERENCES Sessions(session_id) ON DELETE CASCADE ON UPDATE CASCADE
             );`,
             `CREATE TABLE Posts (
                 post_id     text NOT NULL,
@@ -99,7 +99,7 @@ export function createTables(db: Database): Promise<void> {
                 media_urls  varchar(255) NOT NULL,
                 platform_id text NOT NULL,
                 PRIMARY KEY (post_id),
-                FOREIGN KEY(account_id, platform_id) REFERENCES Accounts(account_id, platform_id)
+                FOREIGN KEY(account_id, platform_id) REFERENCES Accounts(account_id, platform_id) ON DELETE CASCADE ON UPDATE CASCADE
             );`,
             `CREATE TABLE Sessions (
                 session_id text NOT NULL,
@@ -121,7 +121,7 @@ export function createTables(db: Database): Promise<void> {
                 media_urls  varchar(255) NOT NULL,
                 platform_id text NOT NULL,
                 PRIMARY KEY (story_id),
-                FOREIGN KEY(account_id, platform_id) REFERENCES Accounts(account_id, platform_id)
+                FOREIGN KEY(account_id, platform_id) REFERENCES Accounts(account_id, platform_id) ON DELETE CASCADE ON UPDATE CASCADE
             );`,
             `CREATE TABLE Users (
                 user_id      text NOT NULL,
@@ -129,7 +129,7 @@ export function createTables(db: Database): Promise<void> {
                 platform_id  text NOT NULL,
                 display_name char(255),
                 PRIMARY KEY (user_id),
-                FOREIGN KEY(account_id, platform_id) REFERENCES Accounts(account_id, platform_id)
+                FOREIGN KEY(account_id, platform_id) REFERENCES Accounts(account_id, platform_id) ON DELETE CASCADE ON UPDATE CASCADE
             );`
         ];
         db.serialize(function() {
