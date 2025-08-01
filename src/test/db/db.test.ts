@@ -178,6 +178,7 @@ describe('Database Social Accounts Table Functionality', () => {
             done();
         }).catch((err) => {
             console.error("Error logging in social account:", err);
+            done(err);
         });
     });
 
@@ -241,12 +242,12 @@ describe('Database Accounts Table Functionality', () => {
         });
     });
     test('Adding Account to Database', (done) => {
-        dbFunctions.Account.addAccount(db, 'account_1', 'social_account_1', 'platform_1', 'session_1', 'Test User').then((account_id) => {
-            expect(account_id).toBeDefined();
-            db.get(`SELECT * FROM Accounts WHERE account_id = ?`, [account_id], (err, row: AccountInterface) => {
+        dbFunctions.Account.addAccount(db, 'account_1', 'social_account_1', 'platform_1', 'session_1', 'Test User').then((accountinterface) => {
+            expect(accountinterface).toBeDefined();
+            db.get(`SELECT * FROM Accounts WHERE account_id = ?`, [accountinterface.account_id], (err, row: AccountInterface) => {
                 expect(err).toBeNull();
                 expect(row).toBeDefined();
-                expect(row.account_id).toBe(account_id);
+                expect(row.account_id).toBe(accountinterface.account_id);
                 expect(row.social_account_id).toBe('social_account_1');
                 expect(row.platform_id).toBe('platform_1');
                 expect(row.session_id).toBe('session_1');
@@ -259,12 +260,12 @@ describe('Database Accounts Table Functionality', () => {
     });
 
     test('Adding Account with Empty Display Name', (done) => {
-        dbFunctions.Account.addAccount(db, 'account_1', 'social_account_1', 'platform_1', 'session_1').then((account_id) => {
-            expect(account_id).toBeDefined();
-            db.get(`SELECT * FROM Accounts WHERE account_id = ?`, [account_id], (err, row: AccountInterface) => {
+        dbFunctions.Account.addAccount(db, 'account_1', 'social_account_1', 'platform_1', 'session_1').then((accountinterface) => {
+            expect(accountinterface).toBeDefined();
+            db.get(`SELECT * FROM Accounts WHERE account_id = ?`, [accountinterface.account_id], (err, row: AccountInterface) => {
                 expect(err).toBeNull();
                 expect(row).toBeDefined();
-                expect(row.account_id).toBe(account_id);
+                expect(row.account_id).toBe(accountinterface.account_id);
                 expect(row.social_account_id).toBe('social_account_1');
                 expect(row.platform_id).toBe('platform_1');
                 expect(row.session_id).toBe('session_1');
