@@ -1,6 +1,4 @@
 import {Database} from 'sqlite3';
-import * as dbFunctions from './index';
-import crypto from 'crypto';
 export interface AccountInterface {
     account_id: string;
     social_account_id: string;
