@@ -56,9 +56,9 @@ export function getAccount(db: Database, account_id: string, platform_id: string
     });
 }
 
-export function updateAccount(db: Database, account_id: string, platform_id: string, new_display_name?: string, new_session_id?: string, new_platform_id?: string, new_account_id?: string, new_social_account_id?: string): Promise<AccountInterface> {
+export function updateAccount(db: Database, account_id: string, platform_id: string, new_account: Partial<AccountInterface>): Promise<AccountInterface> {
     return new Promise((resolve, reject) => {
-        if (!new_display_name && !new_session_id && !new_platform_id && !new_account_id && !new_social_account_id) {
+        if (!new_account) {
             return reject(new Error('At least one field must be updated'));
         }
 
@@ -68,25 +68,25 @@ export function updateAccount(db: Database, account_id: string, platform_id: str
 
         const updates: string[] = [];
         const params: Array<string | null> = [];
-        if (new_display_name) {
+        if (new_account.display_name) {
             updates.push('display_name = ?');
-            params.push(new_display_name);
+            params.push(new_account.display_name);
         }
-        if (new_session_id) {
+        if (new_account.session_id) {
             updates.push('session_id = ?');
-            params.push(new_session_id);
+            params.push(new_account.session_id);
         }
-        if (new_platform_id) {
+        if (new_account.platform_id) {
             updates.push('platform_id = ?');
-            params.push(new_platform_id);
+            params.push(new_account.platform_id);
         }
-        if (new_account_id) {
+        if (new_account.account_id) {
             updates.push('account_id = ?');
-            params.push(new_account_id);
+            params.push(new_account.account_id);
         }
-        if (new_social_account_id) {
+        if (new_account.social_account_id) {
             updates.push('social_account_id = ?');
-            params.push(new_social_account_id);
+            params.push(new_account.social_account_id);
         }
 
         const sql = `UPDATE Accounts SET ${updates.join(', ')} WHERE account_id = ? AND platform_id = ?`;

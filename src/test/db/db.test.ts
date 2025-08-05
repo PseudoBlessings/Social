@@ -340,7 +340,7 @@ describe('Database Accounts Table Functionality', () => {
         let account_id: string;
         dbFunctions.Account.addAccount(db, 'account_1', 'social_account_1', 'platform_1', 'session_1').then((accountinterface) => {
             account_id = accountinterface.account_id;
-            return dbFunctions.Account.updateAccount(db, account_id, 'platform_1', 'Updated User');
+            return dbFunctions.Account.updateAccount(db, account_id, 'platform_1', { display_name: 'Updated User' });
         }).then((updatedAccount: AccountInterface) => {
             expect(updatedAccount).toBeDefined();
             expect(updatedAccount.account_id).toBe(account_id);
