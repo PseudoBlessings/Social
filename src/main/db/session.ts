@@ -17,3 +17,16 @@ export function addSession(db: Database, sessionId: string, token?: string): Pro
         });
     });
 }
+
+export function deleteSession(db: Database, sessionId: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+        const sql = `DELETE FROM Sessions WHERE session_id = ?`;
+        db.run(sql, [sessionId], function (err) {
+            if (err) {
+                reject(err);
+            } else {
+                resolve();
+            }
+        });
+    });
+}

@@ -506,4 +506,19 @@ describe('Database Sessions Table Functionality', () => {
             done(err);
         });
     });
+
+    test('Deleting Session from Database', (done) => {
+        dbFunctions.Session.addSession(db, 'session_1', 'token_1').then((sessionId: SessionInterface) => {
+            return dbFunctions.Session.deleteSession(db, sessionId.session_id);
+        }).then(() => {
+            db.get(`SELECT * FROM Sessions WHERE session_id = ?`, ['session_1'], (err, row: SessionInterface) => {
+                expect(err).toBeNull();
+                expect(row).toBeUndefined();
+                done();
+            });
+        }).catch((err) => {
+            console.error("Error deleting session:", err);
+            done(err);
+        });
+    });
 });
