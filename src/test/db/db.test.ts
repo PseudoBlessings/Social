@@ -1,6 +1,7 @@
 import * as dbFunctions from '../../main/db/index';
 import { SocialAccountInterface } from '../../main/db/index';
 import { AccountInterface } from '../../main/db/index';
+import { PlatformInterface } from '../../main/db/index';
 import fs from 'fs';
 import {Database} from 'sqlite3';  
 const dbPath = ':memory:';
@@ -251,6 +252,19 @@ describe('Database Accounts Table Functionality', () => {
             expect(err).toBeNull();
         });
     });
+
+    afterAll(() => {
+        // Clean up the "Social Accounts" table after all tests
+        db.run(`DELETE FROM "Social Accounts"`, [], (err) => {
+            expect(err).toBeNull();
+        });
+        db.run(`DELETE FROM Platforms`, [], (err) => {
+            expect(err).toBeNull();
+        });
+        db.run(`DELETE FROM Sessions`, [], (err) => {
+            expect(err).toBeNull();
+        });
+    });
     test('Adding Account to Database', (done) => {
         dbFunctions.Account.addAccount(db, 'account_1', 'social_account_1', 'platform_1', 'session_1', 'Test User').then((accountinterface) => {
             expect(accountinterface).toBeDefined();
@@ -287,7 +301,6 @@ describe('Database Accounts Table Functionality', () => {
         });
     });
     test('Deleting Account from Database', (done) => {
-        let account_id: string;
         dbFunctions.Account.addAccount(db, 'account_1', 'social_account_1', 'platform_1', 'session_1').then((accountinterface) => {
             return dbFunctions.Account.deleteAccount(db, accountinterface.account_id, accountinterface.platform_id);
         }).then(() => {
@@ -348,6 +361,108 @@ describe('Database Accounts Table Functionality', () => {
             done();
         }).catch((err) => {
             console.error("Error updating account:", err);
+            done(err);
+        });
+    });
+});
+
+describe('Database Platforms Table Functionality', () => {
+    beforeAll(async () => {
+        // make sure foreign key constraints are fulfilled for "Platforms" table
+        await new Promise<void>((resolve, reject) => {
+            db.run(`CREATE TABLE IF NOT EXISTS Sessions (
+                session_id text NOT NULL,
+                token      text,
+                PRIMARY KEY (session_id)
+            );`, (err) => err ? reject(err) : resolve());
+        });
+        await new Promise<void>((resolve, reject) => {
+            db.run(`CREATE TABLE IF NOT EXISTS Platforms (
+                platform_id   text NOT NULL,
+                session_id    text NOT NULL,
+                platform_name          char(255) NOT NULL UNIQUE,
+                PRIMARY KEY (platform_id),
+                FOREIGN KEY(session_id) REFERENCES Sessions(session_id)
+            );`, (err) => err ? reject(err) : resolve());
+        });
+        await new Promise<void>((resolve, reject) => {
+            db.run(`INSERT OR IGNORE INTO Sessions (session_id, token) VALUES (?, ?)`,
+                ['session_1', 'token_1'], (err) => err ? reject(err) : resolve());
+        });
+    });
+    
+    afterEach(() => {
+        // Ensure the "Platforms" table is empty before each test
+        db.run(`DELETE FROM Platforms`, [], (err) => {
+            expect(err).toBeNull();
+        });
+    });
+
+    afterAll(() => {
+        // Clean up the foreign key tables after all tests
+        db.run(`DELETE FROM Sessions`, [], (err) => {
+            expect(err).toBeNull();
+        });
+    });
+
+    test('Adding Platform to Database', (done) => {
+        dbFunctions.Platform.addPlatform(db, 'platform_1', 'Platform One', 'session_1').then((platforminterface) => {
+            expect(platforminterface).toBeDefined();
+            db.get(`SELECT * FROM Platforms WHERE platform_id = ?`, [platforminterface.platform_id], (err, row: PlatformInterface) => {
+                expect(err).toBeNull();
+                expect(row).toBeDefined();
+                expect(row.platform_id).toBe(platforminterface.platform_id);
+                expect(row.platform_name).toBe('Platform One');
+                expect(row.session_id).toBe('session_1');
+                done();
+            });
+        }).catch((err) => {
+            console.error("Error adding platform:", err);
+            done(err);
+        });
+    });
+
+    test('Deleting Platform from Database', (done) => {
+        let platform_id: string;
+        dbFunctions.Platform.addPlatform(db, 'platform_1', 'Platform One', 'session_1').then((platforminterface) => {
+            platform_id = platforminterface.platform_id;
+            return dbFunctions.Platform.deletePlatform(db, platform_id);
+        }).then((deleted) => {
+            expect(deleted).toBe(true);
+            db.get(`SELECT * FROM Platforms WHERE platform_id = ?`, [platform_id], (err, row: PlatformInterface) => {
+                expect(err).toBeNull();
+                expect(row).toBeUndefined();
+                done();
+            });
+        }).catch((err) => {
+            console.error("Error deleting platform:", err);
+            done(err);
+        });
+    });
+
+    test('Deleting Non-Existent Platform from Database', (done) => {
+        dbFunctions.Platform.deletePlatform(db, 'nonexistent_platform').then((deleted) => {
+            expect(deleted).toBe(false);
+            done();
+        }).catch((err) => {
+            console.error("Error deleting non-existent platform:", err);
+            done(err);
+        });
+    });
+
+    test('Getting Platform from Database', (done) => {
+        let platform_id: string;
+        dbFunctions.Platform.addPlatform(db, 'platform_1', 'Platform One', 'session_1').then((platforminterface) => {
+            platform_id = platforminterface.platform_id;
+            return dbFunctions.Platform.getPlatform(db, platform_id);
+        }).then((row: PlatformInterface) => {
+            expect(row).toBeDefined();
+            expect(row.platform_id).toBe(platform_id);
+            expect(row.platform_name).toBe('Platform One');
+            expect(row.session_id).toBe('session_1');
+            done();
+        }).catch((err) => {
+            console.error("Error getting platform:", err);
             done(err);
         });
     });

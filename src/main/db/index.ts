@@ -1,8 +1,10 @@
 import {Database} from 'sqlite3';
 export {SocialAccountInterface} from './socialaccount';
-export * as SocialAccount from './socialaccount';
 export {AccountInterface} from './account';
+export {PlatformInterface} from './platform';
+export * as SocialAccount from './socialaccount';
 export * as Account from './account';
+export * as Platform from './platform';
 
 export function initializeDatabase(databasePath: string): Promise<Database> {
     return new Promise((resolve, reject) => {

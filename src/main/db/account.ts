@@ -1,6 +1,4 @@
 import {Database} from 'sqlite3';
-import * as dbFunctions from './index';
-import crypto from 'crypto';
 export interface AccountInterface {
     account_id: string;
     social_account_id: string;
@@ -37,7 +35,7 @@ export function deleteAccount(db: Database, account_id: string, platform_id: str
             if (err) {
                 reject(err);
             } else {
-                resolve(this.changes > 0 ? true : false); // Return the number of rows deleted
+                resolve(this.changes > 0); // Return true if any rows were deleted
             }
         });
     });
