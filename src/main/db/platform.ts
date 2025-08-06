@@ -33,7 +33,7 @@ import {Database} from 'sqlite3';
                 if (err) {
                     reject(err);
                 } else {
-                    resolve(this.changes > 0 ? true : false);
+                    resolve(this.changes > 0);
                 }
             });
         });

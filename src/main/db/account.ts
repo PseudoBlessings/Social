@@ -35,7 +35,7 @@ export function deleteAccount(db: Database, account_id: string, platform_id: str
             if (err) {
                 reject(err);
             } else {
-                resolve(this.changes > 0 ? true : false); // Return the number of rows deleted
+                resolve(this.changes > 0); // Return true if any rows were deleted
             }
         });
     });

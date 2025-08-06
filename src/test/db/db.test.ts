@@ -301,7 +301,6 @@ describe('Database Accounts Table Functionality', () => {
         });
     });
     test('Deleting Account from Database', (done) => {
-        let account_id: string;
         dbFunctions.Account.addAccount(db, 'account_1', 'social_account_1', 'platform_1', 'session_1').then((accountinterface) => {
             return dbFunctions.Account.deleteAccount(db, accountinterface.account_id, accountinterface.platform_id);
         }).then(() => {
