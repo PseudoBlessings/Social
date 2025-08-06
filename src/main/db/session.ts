@@ -30,3 +30,16 @@ export function deleteSession(db: Database, sessionId: string): Promise<void> {
         });
     });
 }
+
+export function getSession(db: Database, sessionId: string): Promise<SessionInterface | null> {
+    return new Promise((resolve, reject) => {
+        const sql = `SELECT * FROM Sessions WHERE session_id = ?`;
+        db.get(sql, [sessionId], (err, row: SessionInterface | null) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(row ? { session_id: row.session_id, token: row.token } : null);
+            }
+        });
+    });
+}
