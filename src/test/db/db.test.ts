@@ -535,4 +535,18 @@ describe('Database Sessions Table Functionality', () => {
             done(err);
         });
     });
+
+    test('Updating Session in Database', (done) => {
+        dbFunctions.Session.addSession(db, 'session_1', 'token_1').then((sessionId: SessionInterface) => {
+            return dbFunctions.Session.updateSession(db, sessionId.session_id, 'new_token');
+        }).then((updatedSession: SessionInterface) => {
+            expect(updatedSession).toBeDefined();
+            expect(updatedSession.session_id).toBe('session_1');
+            expect(updatedSession.token).toBe('new_token');
+            done();
+        }).catch((err) => {
+            console.error("Error updating session:", err);
+            done(err);
+        });
+    });
 });
