@@ -521,4 +521,18 @@ describe('Database Sessions Table Functionality', () => {
             done(err);
         });
     });
+
+    test('Getting Session from Database', (done) => {
+        dbFunctions.Session.addSession(db, 'session_1', 'token_1').then((sessionId: SessionInterface) => {
+            return dbFunctions.Session.getSession(db, sessionId.session_id);
+        }).then((row: SessionInterface) => {
+            expect(row).toBeDefined();
+            expect(row.session_id).toBe('session_1');
+            expect(row.token).toBe('token_1');
+            done();
+        }).catch((err) => {
+            console.error("Error getting session:", err);
+            done(err);
+        });
+    });
 });
