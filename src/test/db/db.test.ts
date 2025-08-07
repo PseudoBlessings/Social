@@ -2,6 +2,7 @@ import * as dbFunctions from '../../main/db/index';
 import { SocialAccountInterface } from '../../main/db/index';
 import { AccountInterface } from '../../main/db/index';
 import { PlatformInterface } from '../../main/db/index';
+import { SessionInterface } from '../../main/db/index';
 import fs from 'fs';
 import {Database} from 'sqlite3';  
 const dbPath = ':memory:';
@@ -463,6 +464,88 @@ describe('Database Platforms Table Functionality', () => {
             done();
         }).catch((err) => {
             console.error("Error getting platform:", err);
+            done(err);
+        });
+    });
+});
+
+describe('Database Sessions Table Functionality', () => {
+    afterEach(() => {
+        // Ensure the "Sessions" table is empty before each test
+        db.run(`DELETE FROM Sessions`, [], (err) => {
+            expect(err).toBeNull();
+        });
+    });
+
+    test('Adding Session to Database', (done) => {
+        dbFunctions.Session.addSession(db, 'session_1', 'token_1').then((sessionId: SessionInterface) => {
+            db.get(`SELECT * FROM Sessions WHERE session_id = ?`, ['session_1'], (err, row: SessionInterface) => {
+                expect(err).toBeNull();
+                expect(row).toBeDefined();
+                expect(row.session_id).toBe(sessionId.session_id);
+                expect(row.token).toBe(sessionId.token);
+                done();
+            });
+        }).catch((err) => {
+            console.error("Error adding session:", err);
+            done(err);
+        });
+    });
+
+    test('Adding Session with Empty Token', (done) => {
+        dbFunctions.Session.addSession(db, 'session_2').then((sessionID: SessionInterface) => {
+            db.get(`SELECT * FROM Sessions WHERE session_id = ?`, ['session_2'], (err, row: SessionInterface) => {
+                expect(err).toBeNull();
+                expect(row).toBeDefined();
+                expect(row.session_id).toBe(sessionID.session_id);
+                expect(row.token).toBeNull();
+                done();
+            });
+        }).catch((err) => {
+            console.error("Error adding session with empty token:", err);
+            done(err);
+        });
+    });
+
+    test('Deleting Session from Database', (done) => {
+        dbFunctions.Session.addSession(db, 'session_1', 'token_1').then((sessionId: SessionInterface) => {
+            return dbFunctions.Session.deleteSession(db, sessionId.session_id);
+        }).then(() => {
+            db.get(`SELECT * FROM Sessions WHERE session_id = ?`, ['session_1'], (err, row: SessionInterface) => {
+                expect(err).toBeNull();
+                expect(row).toBeUndefined();
+                done();
+            });
+        }).catch((err) => {
+            console.error("Error deleting session:", err);
+            done(err);
+        });
+    });
+
+    test('Getting Session from Database', (done) => {
+        dbFunctions.Session.addSession(db, 'session_1', 'token_1').then((sessionId: SessionInterface) => {
+            return dbFunctions.Session.getSession(db, sessionId.session_id);
+        }).then((row: SessionInterface) => {
+            expect(row).toBeDefined();
+            expect(row.session_id).toBe('session_1');
+            expect(row.token).toBe('token_1');
+            done();
+        }).catch((err) => {
+            console.error("Error getting session:", err);
+            done(err);
+        });
+    });
+
+    test('Updating Session in Database', (done) => {
+        dbFunctions.Session.addSession(db, 'session_1', 'token_1').then((sessionId: SessionInterface) => {
+            return dbFunctions.Session.updateSession(db, sessionId.session_id, 'new_token');
+        }).then((updatedSession: SessionInterface) => {
+            expect(updatedSession).toBeDefined();
+            expect(updatedSession.session_id).toBe('session_1');
+            expect(updatedSession.token).toBe('new_token');
+            done();
+        }).catch((err) => {
+            console.error("Error updating session:", err);
             done(err);
         });
     });
