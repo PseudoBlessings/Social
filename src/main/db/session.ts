@@ -43,3 +43,18 @@ export function getSession(db: Database, sessionId: string): Promise<SessionInte
         });
     });
 }
+
+export function updateSession(db: Database, sessionId: string, token?: string): Promise<SessionInterface> {
+    return new Promise((resolve, reject) => {
+        const sql = `UPDATE Sessions SET token = ? WHERE session_id = ?`;
+        db.run(sql, [token || null, sessionId], function (err) {
+            if (err) {
+                reject(err);
+            } else if (this.changes === 0) {
+                reject(new Error("Session not found"));
+            } else {
+                resolve({ session_id: sessionId, token });
+            }
+        });
+    });
+}
