@@ -600,4 +600,19 @@ describe('Database Users Table Functionality', () => {
             done(err);
         });
     });
+
+    test('Deleting User from Database', (done) => {
+        dbFunctions.User.addUser(db, 'user_1', 'account_1', 'platform_1', 'Test User').then((user: UserInterface) => {
+            return dbFunctions.User.deleteUser(db, user.user_id);
+        }).then(() => {
+            db.get(`SELECT * FROM Users WHERE user_id = ?`, ['user_1'], (err, row: UserInterface) => {
+                expect(err).toBeNull();
+                expect(row).toBeUndefined();
+                done();
+            });
+        }).catch((err) => {
+            console.error("Error deleting user:", err);
+            done(err);
+        });
+    });
 });
