@@ -53,3 +53,26 @@ export function getUser(db: Database, user_id: string): Promise<UserInterface>{
         });
     });
 }
+
+export function updateUser(db: Database, user_id: string, new_user : Partial<UserInterface>) : Promise<UserInterface>{
+    return new Promise((resolve, reject) => {
+        const fields = Object.keys(new_user).map(key => `${key} = ?`).join(', ');
+        const values = Object.values(new_user);
+        const sql = `UPDATE Users SET ${fields} WHERE user_id = ?`;
+        db.run(sql, [...values, user_id], function (err){
+            if(err){
+                reject(err);
+            }
+            else{
+                db.get(`SELECT * FROM Users WHERE user_id = ?`, [user_id], (err, row:UserInterface) =>{
+                    if(err){
+                        reject(err)
+                    }
+                    else{
+                        resolve(row);
+                    }
+                })
+            }
+        })
+    })
+}

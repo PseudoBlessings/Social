@@ -400,11 +400,11 @@ describe('Database Platforms Table Functionality', () => {
         });
     });
 
-    afterAll(() => {
+    afterAll(async () => {
         // Clean up the foreign key tables after all tests
-        db.run(`DELETE FROM Sessions`, [], (err) => {
-            expect(err).toBeNull();
-        });
+        await new Promise<void>((resolve, reject)=>{
+            db.run(`DELETE FROM Sessions`, [], (err) => err ? reject(err) : resolve());
+        })
     });
 
     test('Adding Platform to Database', (done) => {
@@ -631,4 +631,20 @@ describe('Database Users Table Functionality', () => {
             done(err);
         })
     });
+
+    test('Updating User from Database', (done) =>{
+        dbFunctions.User.addUser(db, 'user_1', 'account_1', 'platform_1', 'Test User').then((user:UserInterface) =>{
+            return dbFunctions.User.updateUser(db, user.user_id,{display_name: 'New User'});
+        }).then((user:UserInterface) =>{
+            expect(user).toBeDefined;
+            expect(user.user_id).toBe('user_1');
+            expect(user.account_id).toBe('account_1');
+            expect(user.platform_id).toBe('platform_1');
+            expect(user.display_name).toBe('New User');
+            done()
+        }).catch((err) =>{
+            console.error('Error updating user: ', err);
+            done(err);
+        })
+    })
 });
