@@ -615,4 +615,20 @@ describe('Database Users Table Functionality', () => {
             done(err);
         });
     });
+
+    test('Getting User from Database', (done) =>{
+        dbFunctions.User.addUser(db, 'user_1', 'account_1', 'platform_1', 'Test User').then((user:UserInterface) => {
+            return dbFunctions.User.getUser(db, user.user_id);
+        }).then((user:UserInterface) => {
+            expect(user).toBeDefined;
+            expect(user.user_id).toBe('user_1');
+            expect(user.account_id).toBe('account_1');
+            expect(user.platform_id).toBe('platform_1');
+            expect(user.display_name).toBe('Test User');
+            done();
+        }).catch((err)=>{
+            console.error("Error getting user: ", err);
+            done(err);
+        })
+    });
 });
