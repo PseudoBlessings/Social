@@ -26,3 +26,16 @@ export function addUser(db: Database, user_id: string, account_id: string, platf
         });
     });
 }
+
+export function deleteUser(db: Database, user_id: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+        const sql = `DELETE FROM Users WHERE user_id = ?`;
+        db.run(sql, [user_id], function(err) {
+            if (err) {
+                reject(err);
+            } else {
+                resolve();
+            }
+        });
+    });
+}
