@@ -1,3 +1,4 @@
+import { resolve } from 'path';
 import {Database} from 'sqlite3';
 
 export interface UserInterface {
@@ -35,6 +36,19 @@ export function deleteUser(db: Database, user_id: string): Promise<void> {
                 reject(err);
             } else {
                 resolve();
+            }
+        });
+    });
+}
+
+export function getUser(db: Database, user_id: string): Promise<UserInterface>{
+    return new Promise((resolve, reject) => {
+        db.get(`SELECT * FROM Users WHERE user_id = ?`, [user_id], (err, row: UserInterface) => {
+            if(err){
+                reject(err);
+            }
+            else{
+                resolve(row);
             }
         });
     });
