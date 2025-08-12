@@ -3,6 +3,7 @@ import { SocialAccountInterface } from '../../main/db/index';
 import { AccountInterface } from '../../main/db/index';
 import { PlatformInterface } from '../../main/db/index';
 import { SessionInterface } from '../../main/db/index';
+import { UserInterface } from '../../main/db/index';
 import fs from 'fs';
 import {Database} from 'sqlite3';  
 const dbPath = ':memory:';
@@ -399,11 +400,11 @@ describe('Database Platforms Table Functionality', () => {
         });
     });
 
-    afterAll(() => {
+    afterAll(async () => {
         // Clean up the foreign key tables after all tests
-        db.run(`DELETE FROM Sessions`, [], (err) => {
-            expect(err).toBeNull();
-        });
+        await new Promise<void>((resolve, reject)=>{
+            db.run(`DELETE FROM Sessions`, [], (err) => err ? reject(err) : resolve());
+        })
     });
 
     test('Adding Platform to Database', (done) => {
@@ -549,4 +550,101 @@ describe('Database Sessions Table Functionality', () => {
             done(err);
         });
     });
+});
+
+describe('Database Users Table Functionality', () => {
+    beforeAll(async () => {
+            // make sure foreign key constraints are fulfilled for "Users" table
+        await new Promise<void>((resolve, reject) => {
+            db.run(`INSERT OR IGNORE INTO Sessions (session_id, token) VALUES (?, ?)`, ['session_1', 'token_1'], (err) => err ? reject(err) : resolve());
+        });
+        
+        await new Promise<void>((resolve, reject) => {
+            db.run(`INSERT OR IGNORE INTO Platforms (platform_id, session_id, platform_name) VALUES (?, ?, ?)`, ['platform_1', 'session_1', 'Platform One'], (err) => err ? reject(err) : resolve());
+        });
+        
+        await new Promise<void>((resolve, reject) => {
+            db.run(`INSERT OR IGNORE INTO "Social Accounts" (account_id, username, password) VALUES (?, ?, ?)`, ['social_account_1', 'user1', 'pass1'], (err) => err ? reject(err) : resolve());
+        });
+        
+        await new Promise<void>((resolve, reject) => {
+            db.run(`INSERT OR IGNORE INTO Accounts (account_id, social_account_id, platform_id, session_id, display_name) VALUES (?, ?, ?, ?, ?)`, ['account_1', 'social_account_1', 'platform_1', 'session_1', 'Test User'], (err) => err ? reject(err) : resolve());
+        });
+    });
+    afterEach(() => {
+        // Ensure the "Users" table is empty before each test
+        db.run(`DELETE FROM Users`, [], (err) => {
+            expect(err).toBeNull();
+        });
+    });
+    afterAll(() => {
+        // Clean up the database after all tests
+        db.run(`DELETE FROM Users`, [], (err) => {
+            expect(err).toBeNull();
+        });
+    });
+    test('Adding User to Database', (done) => {
+        dbFunctions.User.addUser(db, 'user_1', 'account_1', 'platform_1', 'Test User').then((user: UserInterface) => {
+            expect(user).toBeDefined();
+            db.get(`SELECT * FROM Users WHERE user_id = ?`, ['user_1'], (err, row: UserInterface) => {
+                expect(err).toBeNull();
+                expect(row).toBeDefined();
+                expect(row.user_id).toBe(user.user_id);
+                expect(row.account_id).toBe('account_1');
+                expect(row.platform_id).toBe('platform_1');
+                expect(row.display_name).toBe('Test User');
+                done();
+            });
+        }).catch((err) => {
+            console.error("Error adding user:", err);
+            done(err);
+        });
+    });
+
+    test('Deleting User from Database', (done) => {
+        dbFunctions.User.addUser(db, 'user_1', 'account_1', 'platform_1', 'Test User').then((user: UserInterface) => {
+            return dbFunctions.User.deleteUser(db, user.user_id);
+        }).then(() => {
+            db.get(`SELECT * FROM Users WHERE user_id = ?`, ['user_1'], (err, row: UserInterface) => {
+                expect(err).toBeNull();
+                expect(row).toBeUndefined();
+                done();
+            });
+        }).catch((err) => {
+            console.error("Error deleting user:", err);
+            done(err);
+        });
+    });
+
+    test('Getting User from Database', (done) =>{
+        dbFunctions.User.addUser(db, 'user_1', 'account_1', 'platform_1', 'Test User').then((user:UserInterface) => {
+            return dbFunctions.User.getUser(db, user.user_id);
+        }).then((user:UserInterface) => {
+            expect(user).toBeDefined;
+            expect(user.user_id).toBe('user_1');
+            expect(user.account_id).toBe('account_1');
+            expect(user.platform_id).toBe('platform_1');
+            expect(user.display_name).toBe('Test User');
+            done();
+        }).catch((err)=>{
+            console.error("Error getting user: ", err);
+            done(err);
+        })
+    });
+
+    test('Updating User from Database', (done) =>{
+        dbFunctions.User.addUser(db, 'user_1', 'account_1', 'platform_1', 'Test User').then((user:UserInterface) =>{
+            return dbFunctions.User.updateUser(db, user.user_id,{display_name: 'New User'});
+        }).then((user:UserInterface) =>{
+            expect(user).toBeDefined;
+            expect(user.user_id).toBe('user_1');
+            expect(user.account_id).toBe('account_1');
+            expect(user.platform_id).toBe('platform_1');
+            expect(user.display_name).toBe('New User');
+            done()
+        }).catch((err) =>{
+            console.error('Error updating user: ', err);
+            done(err);
+        })
+    })
 });
