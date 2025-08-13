@@ -57,7 +57,7 @@ export function deleteContact(db:Database, contact_id:string):Promise<void>{
 
 export function getContact(db:Database, contact_id:string):Promise<ContactInterface | null>{
     return new Promise((resolve, reject) =>{
-        const sql = `SELECT * FROM Contact WHERE contact_id = ?`;
+        const sql = `SELECT * FROM Contacts WHERE contact_id = ?`;
         db.get(sql, [contact_id], (err, row: ContactInterface) =>{
             if(err){
                 reject(err);

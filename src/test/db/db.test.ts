@@ -696,4 +696,23 @@ describe('Database Contacts Table Functionality', () =>{
             done(err)
         })
     })
+
+    test('Getting Contact from Database', (done) =>{
+        dbFunctions.Contact.addContact(db, {contact_id: '12345', first_name: 'Test User'}).then((contact : ContactInterface) =>{
+            return dbFunctions.Contact.getContact(db, contact.contact_id);
+        }).then((contact:ContactInterface) =>{
+            expect(contact).toBeDefined;
+            expect(contact.contact_id).toBe('12345');
+            expect(contact.first_name).toBe('Test User');
+            expect(contact.last_name).toBeNull;
+            expect(contact.address).toBeNull;
+            expect(contact.is_favorite).toBeNull;
+            expect(contact.nickname).toBeNull;
+            expect(contact.label).toBeNull;
+            done();
+        }).catch((err) =>{
+            console.error('Error getting contact: ', err);
+            done(err);
+        })
+    })
 })
