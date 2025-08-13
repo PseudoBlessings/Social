@@ -1,3 +1,4 @@
+import { Data } from 'electron';
 import {Database} from 'sqlite3'
 
 export interface ContactInterface {
@@ -12,6 +13,14 @@ export interface ContactInterface {
 
 export function addContact(db:Database, new_contact : Partial<ContactInterface>):Promise<ContactInterface>{
     return new Promise((resolve, reject) =>{
+        if(new_contact.contact_id == undefined || new_contact.contact_id.length === 0){
+            reject(new Error('Contact ID is required'));
+        }
+        
+        if(new_contact.first_name == undefined || new_contact.first_name.length === 0){
+            reject(new Error('First Name is required'));
+        }
+
         const sql = `INSERT INTO Contacts (contact_id, first_name, last_name, nickname, label, address, is_favorite)
                     VALUES (?, ?, ?, ?, ?, ?, ?)`
         db.run(sql, [new_contact.contact_id, new_contact.first_name, new_contact.last_name ?? null, new_contact.nickname ?? null, new_contact.label ?? null, new_contact.address ?? null, new_contact.is_favorite ?? null], function(err){
@@ -27,6 +36,20 @@ export function addContact(db:Database, new_contact : Partial<ContactInterface>)
                         resolve(row);
                     }
                 })
+            }
+        })
+    })
+}
+
+export function deleteContact(db:Database, contact_id:string):Promise<void>{
+    return new Promise((resolve, reject) =>{
+        const sql = `DELETE FROM User WHERE contact_id = ?`
+        db.run(sql, [contact_id], (err) =>{
+            if(err){
+                reject(err);
+            }
+            else{
+                resolve();
             }
         })
     })
