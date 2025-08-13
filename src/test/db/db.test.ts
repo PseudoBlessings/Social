@@ -4,6 +4,7 @@ import { AccountInterface } from '../../main/db/index';
 import { PlatformInterface } from '../../main/db/index';
 import { SessionInterface } from '../../main/db/index';
 import { UserInterface } from '../../main/db/index';
+import { ContactInterface } from '../../main/db/index';
 import fs from 'fs';
 import {Database} from 'sqlite3';  
 const dbPath = ':memory:';
@@ -648,3 +649,35 @@ describe('Database Users Table Functionality', () => {
         })
     })
 });
+
+describe('Database Contacts Table Functionality', () =>{
+    afterEach(() => {
+        // Ensure the "Contacts" table is empty before each test
+        db.run(`DELETE FROM Contacts`, [], (err) => {
+            expect(err).toBeNull();
+        });
+    });
+    afterAll(() => {
+        // Clean up the database after all tests
+        db.run(`DELETE FROM Contacts`, [], (err) => {
+            expect(err).toBeNull();
+        });
+    });
+
+    test('Adding Contact to Database',(done) =>{
+        dbFunctions.Contact.addContact(db, {contact_id: '1245', first_name: 'Test User', is_favorite: true}).then((contact : ContactInterface) =>{
+        expect(contact).toBeDefined();
+        expect(contact.contact_id).toBe('1245');
+        expect(contact.first_name).toBe('Test User');
+        expect(contact.is_favorite).toBe(1);
+        expect(contact.address).toBeNull();
+        expect(contact.label).toBeNull();
+        expect(contact.last_name).toBeNull();
+        expect(contact.nickname).toBeNull();
+        done();
+        }).catch((err) => {
+            console.error('Error adding contact: ', err);
+            done(err);
+        })
+    })
+})
