@@ -68,3 +68,31 @@ export function getContact(db:Database, contact_id:string):Promise<ContactInterf
         })
     })
 }
+
+export function updateContact(db:Database, contact_id:string, new_contact: Partial<ContactInterface>):Promise<ContactInterface>{
+    return new Promise((resolve, reject) => {
+        if(!new_contact || Object.keys(new_contact).length === 0){
+            return reject(new Error('At least one field must be updated'));
+        }
+
+        const fields = Object.keys(new_contact).map(key => `${key} = ?`).join(', ');
+        const values = Object.values(new_contact);
+
+        const sql = `UPDATE Contacts SET ${fields} WHERE contact_id = ?`;
+        db.run(sql, [...values, contact_id], function (err){
+            if(err){
+                reject(err);
+            }
+            else{
+                db.get(`SELECT * FROM Contacts WHERE contact_id = ?`, [contact_id], (err, row:ContactInterface) =>{
+                    if(err){
+                        reject(err);
+                    }
+                    else{
+                        resolve(row);
+                    }
+                })
+            }
+        })
+    })
+}
