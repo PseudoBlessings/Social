@@ -715,4 +715,21 @@ describe('Database Contacts Table Functionality', () =>{
             done(err);
         })
     })
+
+    test('Updating Contact from Database', (done) =>{
+        dbFunctions.Contact.addContact(db, {contact_id: '12345', first_name: 'Test User'}).then((contact:ContactInterface) =>{
+            return dbFunctions.Contact.updateContact(db, contact.contact_id, {last_name: 'Test Name', is_favorite: false, address: '1234 Test St, Test, Test 12345'});
+        }).then((contact:ContactInterface) => {
+            expect(contact).toBeDefined;
+            expect(contact.contact_id).toBe('12345');
+            expect(contact.first_name).toBe('Test User');
+            expect(contact.last_name).toBe('Test Name');
+            expect(contact.address).toBe('1234 Test St, Test, Test 12345');
+            expect(contact.is_favorite).toBe(0);
+            done();
+        }).catch((err) =>{
+            console.error('Error updating contact:', err);
+            done(err)
+        })
+    })
 })
