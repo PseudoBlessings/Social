@@ -43,7 +43,7 @@ export function addContact(db:Database, new_contact : Partial<ContactInterface>)
 
 export function deleteContact(db:Database, contact_id:string):Promise<void>{
     return new Promise((resolve, reject) =>{
-        const sql = `DELETE FROM User WHERE contact_id = ?`
+        const sql = `DELETE FROM Contacts WHERE contact_id = ?`
         db.run(sql, [contact_id], (err) =>{
             if(err){
                 reject(err);

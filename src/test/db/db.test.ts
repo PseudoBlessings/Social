@@ -680,4 +680,20 @@ describe('Database Contacts Table Functionality', () =>{
             done(err);
         })
     })
+
+    test('Delete Contact from Database', (done) =>{
+        dbFunctions.Contact.addContact(db, {contact_id: '12345', first_name: 'Test User'}).then((contact:ContactInterface)=>{
+            return dbFunctions.Contact.deleteContact(db, contact.contact_id);
+        }).then(() =>{
+            const sql = 'SELECT * FROM Contact WHERE contact_id = ?'
+            db.get(sql, ['12345'], (err, row:ContactInterface) =>{
+                expect(err).toBeNull;
+                expect(row).toBeNull;
+                done()
+            })
+        }).catch((err) => {
+            console.error("Error deleting contact:", err);
+            done(err)
+        })
+    })
 })
