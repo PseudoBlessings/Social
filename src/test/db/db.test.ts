@@ -4,6 +4,7 @@ import { AccountInterface } from '../../main/db/index';
 import { PlatformInterface } from '../../main/db/index';
 import { SessionInterface } from '../../main/db/index';
 import { UserInterface } from '../../main/db/index';
+import { ContactInterface } from '../../main/db/index';
 import fs from 'fs';
 import {Database} from 'sqlite3';  
 const dbPath = ':memory:';
@@ -648,3 +649,87 @@ describe('Database Users Table Functionality', () => {
         })
     })
 });
+
+describe('Database Contacts Table Functionality', () =>{
+    afterEach(() => {
+        // Ensure the "Contacts" table is empty before each test
+        db.run(`DELETE FROM Contacts`, [], (err) => {
+            expect(err).toBeNull();
+        });
+    });
+    afterAll(() => {
+        // Clean up the database after all tests
+        db.run(`DELETE FROM Contacts`, [], (err) => {
+            expect(err).toBeNull();
+        });
+    });
+
+    test('Adding Contact to Database',(done) =>{
+        dbFunctions.Contact.addContact(db, {contact_id: '1245', first_name: 'Test User', is_favorite: true}).then((contact : ContactInterface) =>{
+        expect(contact).toBeDefined();
+        expect(contact.contact_id).toBe('1245');
+        expect(contact.first_name).toBe('Test User');
+        expect(contact.is_favorite).toBe(1);
+        expect(contact.address).toBeNull();
+        expect(contact.label).toBeNull();
+        expect(contact.last_name).toBeNull();
+        expect(contact.nickname).toBeNull();
+        done();
+        }).catch((err) => {
+            console.error('Error adding contact: ', err);
+            done(err);
+        })
+    })
+
+    test('Delete Contact from Database', (done) =>{
+        dbFunctions.Contact.addContact(db, {contact_id: '12345', first_name: 'Test User'}).then((contact:ContactInterface)=>{
+            return dbFunctions.Contact.deleteContact(db, contact.contact_id);
+        }).then(() =>{
+            const sql = 'SELECT * FROM Contact WHERE contact_id = ?'
+            db.get(sql, ['12345'], (err, row:ContactInterface) =>{
+                expect(err).toBeNull;
+                expect(row).toBeNull;
+                done()
+            })
+        }).catch((err) => {
+            console.error("Error deleting contact:", err);
+            done(err)
+        })
+    })
+
+    test('Getting Contact from Database', (done) =>{
+        dbFunctions.Contact.addContact(db, {contact_id: '12345', first_name: 'Test User'}).then((contact : ContactInterface) =>{
+            return dbFunctions.Contact.getContact(db, contact.contact_id);
+        }).then((contact:ContactInterface) =>{
+            expect(contact).toBeDefined;
+            expect(contact.contact_id).toBe('12345');
+            expect(contact.first_name).toBe('Test User');
+            expect(contact.last_name).toBeNull;
+            expect(contact.address).toBeNull;
+            expect(contact.is_favorite).toBeNull;
+            expect(contact.nickname).toBeNull;
+            expect(contact.label).toBeNull;
+            done();
+        }).catch((err) =>{
+            console.error('Error getting contact: ', err);
+            done(err);
+        })
+    })
+
+    test('Updating Contact from Database', (done) =>{
+        dbFunctions.Contact.addContact(db, {contact_id: '12345', first_name: 'Test User'}).then((contact:ContactInterface) =>{
+            return dbFunctions.Contact.updateContact(db, contact.contact_id, {last_name: 'Test Name', is_favorite: false, address: '1234 Test St, Test, Test 12345'});
+        }).then((contact:ContactInterface) => {
+            expect(contact).toBeDefined;
+            expect(contact.contact_id).toBe('12345');
+            expect(contact.first_name).toBe('Test User');
+            expect(contact.last_name).toBe('Test Name');
+            expect(contact.address).toBe('1234 Test St, Test, Test 12345');
+            expect(contact.is_favorite).toBe(0);
+            done();
+        }).catch((err) =>{
+            console.error('Error updating contact:', err);
+            done(err)
+        })
+    })
+})

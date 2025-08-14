@@ -4,11 +4,13 @@ export {AccountInterface} from './account';
 export {PlatformInterface} from './platform';
 export {SessionInterface} from './session';
 export {UserInterface} from './user';
+export {ContactInterface} from './contact'
 export * as SocialAccount from './socialaccount';
 export * as Account from './account';
 export * as Platform from './platform';
 export * as Session from './session';
 export * as User from './user';
+export * as Contact from './contact'
 
 export function initializeDatabase(databasePath: string): Promise<Database> {
     return new Promise((resolve, reject) => {
