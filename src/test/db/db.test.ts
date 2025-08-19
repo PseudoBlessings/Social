@@ -741,7 +741,7 @@ describe('Database Posts Table Functionality', () =>{
 
         // Social Accounts
         await new Promise<void>((resolve, reject) => {
-            db.run(`CREATE TABLE "Social Accounts" (
+            db.run(`CREATE TABLE IF NOT EXISTS "Social Accounts" (
                 account_id text NOT NULL, 
                 username   text NOT NULL UNIQUE, 
                 password   text, 
@@ -768,19 +768,18 @@ describe('Database Posts Table Functionality', () =>{
             );`, (err) => err ? reject(err) : resolve());
         });
         // Accounts
-        await new Promise((resolve, reject)=>{
+        await new Promise<void>((resolve, reject)=>{
             db.run(`CREATE TABLE IF NOT EXISTS Accounts (
                 account_id        char(255) NOT NULL, 
                 social_account_id text NOT NULL, 
                 platform_id       text NOT NULL, 
                 session_id        text NOT NULL, 
                 display_name      char(255), 
-                PRIMARY KEY (account_id, 
-                platform_id)
+                PRIMARY KEY (account_id, platform_id),
                 FOREIGN KEY(social_account_id) REFERENCES "Social Accounts"(account_id), 
                 FOREIGN KEY(platform_id) REFERENCES Platforms(platform_id), 
                 FOREIGN KEY(session_id) REFERENCES Sessions(session_id));
-            );`)
+            );`, (err) => err ? reject(err) : resolve());
         });
         // Adding Foreign Rows
 
@@ -821,9 +820,34 @@ describe('Database Posts Table Functionality', () =>{
         db.run(`DELETE FROM Posts`, [], (err) => {
             expect(err).toBeNull();
         });
+        db.run(`DELETE FROM Accounts`, [], (err) => {
+            expect(err).toBeNull();
+        });
+        db.run(`DELETE FROM Platforms`, [], (err) => {
+            expect(err).toBeNull();
+        });
+        db.run(`DELETE FROM Sessions`, [], (err) => {
+            expect(err).toBeNull();
+        });
+        db.run(`DELETE FROM "Social Accounts"`, [], (err) => {
+            expect(err).toBeNull();
+        });
     });
 
     test('Adding Post to Database', (done) =>{
-        
+        dbFunctions.Post.addPost(db, {post_id: "test_post", account_id: "account_id_1", platform_id: 'platform_1', author: 'Test Author', description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque tempus nibh luctus neque sodales, id tristique ipsum bibendum. Sed tempor congue dapibus. Phasellus eleifend erat sed elit bibendum, eu euismod diam condimentum. Duis quis lectus gravida, elementum turpis sit amet, molestie massa. Nunc mattis rhoncus metus sed hendrerit. In euismod luctus nisi at porta. Sed tortor risus, ultricies at nulla id, eleifend pretium mauris.', timestamp: new Date ("Janurary 01, 1999 00:00:00").toISOString(), media_urls:"https://picsum.photos/200"}).then((post : PostInterface) => {
+            expect(post).toBeDefined;
+            expect(post.post_id).toBe('test_post');
+            expect(post.platform_id).toBe('platform_1');
+            expect(post.account_id).toBe('account_id_1');
+            expect(post.author).toBe('Test Author');
+            expect(post.description).toBeDefined;
+            expect(post.media_urls).toBe('https://picsum.photos/200');
+            expect(post.timestamp.toString()).toBe('1999-01-01T10:00:00.000Z');
+            done();
+        }).catch((err) => {
+            console.error('Error adding post:', err);
+            done(err);
+        })
     });
-})
+});

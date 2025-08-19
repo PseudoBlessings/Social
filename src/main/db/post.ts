@@ -1,5 +1,5 @@
 import { Data } from "electron";
-import { Database } from "sqlite/build";
+import { Database } from "sqlite3";
 
 export interface PostInterface {
     post_id: string;
@@ -7,7 +7,7 @@ export interface PostInterface {
     platform_id: string;
     author: string;
     description?: string;
-    timestamp: Date;
+    timestamp: string;
     media_urls: string;
 }
 
