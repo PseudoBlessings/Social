@@ -850,4 +850,24 @@ describe('Database Posts Table Functionality', () =>{
             done(err);
         })
     });
+
+    test('Removing Post from Database', (done) =>{
+        dbFunctions.Post.addPost(db, {post_id: "test_post", account_id: "account_id_1", platform_id: 'platform_1', author: 'Test Author', description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque tempus nibh luctus neque sodales, id tristique ipsum bibendum. Sed tempor congue dapibus. Phasellus eleifend erat sed elit bibendum, eu euismod diam condimentum. Duis quis lectus gravida, elementum turpis sit amet, molestie massa. Nunc mattis rhoncus metus sed hendrerit. In euismod luctus nisi at porta. Sed tortor risus, ultricies at nulla id, eleifend pretium mauris.', timestamp: new Date ("Janurary 01, 1999 00:00:00").toISOString(), media_urls:"https://picsum.photos/200"}).then((post: PostInterface) => {
+            return dbFunctions.Post.removePost(db, post.post_id)
+        }).then((postRemoved:Boolean) => {
+            db.get(`SELECT * FROM Posts WHERE post_id = ?`, ['test_post'], (err, row: PostInterface) => {
+                if(err){
+                    done(err);
+                }
+                else{
+                    expect(row).toBeUndefined();
+                    expect(postRemoved).toBeTruthy();
+                    done();
+                }
+            })
+        }).catch((err) =>{
+            console.error("Error removing post:", err);
+            done(err);
+        })
+    })
 });

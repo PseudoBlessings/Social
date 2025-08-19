@@ -35,14 +35,14 @@ export function addPost(db:Database,  new_post:Partial<PostInterface>): Promise<
 
 export function removePost(db:Database, post_id: string): Promise<boolean>{
     return new Promise((resolve, reject) => {
-        const sql = `DELETE FROM Post WHERE post_id = ?`;
-        db.run(sql, [post_id], (err) =>{
+        const sql = `DELETE FROM Posts WHERE post_id = ?`;
+        db.run(sql, [post_id], function(err){
             if(err){
                 reject(err);
             }
             else{
                 resolve(this.changes > 0);
             }
-        })
-    })
+        });
+    });
 }
