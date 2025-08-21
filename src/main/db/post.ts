@@ -11,7 +11,7 @@ export interface PostInterface {
     media_urls: string;
 }
 
-export function addPost(db:Database,  new_post:Partial<PostInterface>): Promise<PostInterface>{
+export function addPost(db:Database,  new_post: PostInterface): Promise<PostInterface>{
         return new Promise((resolve, reject)=>{
             const sql = `INSERT INTO Posts (post_id, account_id, platform_id, author, description, timestamp, media_urls) VALUES (?, ?, ?, ?, ?, ?, ?)`;
             db.run(sql, [new_post.post_id, new_post.account_id, new_post.platform_id, new_post.author, new_post.description ?? null, new_post.timestamp, new_post.media_urls], (err:Error) =>{
@@ -49,11 +49,15 @@ export function removePost(db:Database, post_id: string): Promise<boolean>{
 
 export function updatePost(db: Database, post_id: string, new_post: Partial<PostInterface>): Promise<PostInterface>{
     return new Promise((resolve, reject) => {
-        const sql = `UPDATE FROM Posts WHERE post_id = ?`;
         if (!new_post || Object.keys(new_post).length === 0) {
             return reject(new Error('At least one field must be updated'));
         }
-        db.run(sql, [new_post.post_id ?? post_id, new_post.account_id ?? null, new_post.platform_id ?? null, new_post.author ?? null, new_post.description ?? null, new_post.timestamp ?? null, new_post.media_urls ?? null], function(err) {
+        const fields = Object.keys(new_post).map(key => `${key} = ?`).join(', ');
+        const values = Object.values(new_post);
+    
+        const sql = `UPDATE Posts SET ${fields} WHERE post_id = ?`;
+
+        db.run(sql, [...values, post_id], function(err) {
             if (err) {
                 reject(err);
             } else {
