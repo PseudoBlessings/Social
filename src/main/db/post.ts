@@ -73,3 +73,17 @@ export function updatePost(db: Database, post_id: string, new_post: Partial<Post
         });
     })
 }
+
+export function getPost(db: Database, post_id: string): Promise<PostInterface>{
+    return new Promise((resolve, reject) => {
+        const sql: string = `SELECT * FROM Posts WHERE post_id = ?`
+        db.get(sql, (err, row : PostInterface) => {
+            if (err){
+                reject(err);
+            }
+            else{
+                resolve(row);
+            }
+        });
+    });
+}
