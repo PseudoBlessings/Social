@@ -889,4 +889,22 @@ describe('Database Posts Table Functionality', () =>{
             done(err);
         })
     })
+
+    test('Getting Post from Database', (done) => {
+        dbFunctions.Post.addPost(db, {post_id: 'post_1', account_id: 'account_id_1', platform_id: 'platform_1', author: 'Test Author', timestamp: new Date ("Janurary 01, 1999 00:00:00").toISOString(), media_urls:"https://picsum.photos/200"}).then((post:PostInterface) => {
+            return dbFunctions.Post.getPost(db, 'post_1');
+        }).then((post:PostInterface) => {
+            expect(post).toBeDefined();
+            expect(post.post_id).toBe('post_1');
+            expect(post.account_id).toBe('account_id_1');
+            expect(post.platform_id).toBe('platform_1');
+            expect(post.author).toBe('Test Author');
+            expect(post.media_urls).toBe('https://picsum.photos/200');
+            expect(post.timestamp.toString()).toBe('1999-01-01T10:00:00.000Z');
+            done();
+        }).catch((err) => {
+            console.error('Error getting post: ', err);
+            done(err);
+        })
+    })
 });
