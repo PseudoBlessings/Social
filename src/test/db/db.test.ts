@@ -6,6 +6,7 @@ import { SessionInterface } from '../../main/db/index';
 import { UserInterface } from '../../main/db/index';
 import { ContactInterface } from '../../main/db/index';
 import { PostInterface } from '../../main/db/index';
+import { StoryInterface } from '../../main/db/index';
 import fs from 'fs';
 import {Database} from 'sqlite3';  
 const dbPath = ':memory:';
