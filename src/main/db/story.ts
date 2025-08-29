@@ -1,3 +1,4 @@
+import { resolve } from 'path';
 import {Database} from 'sqlite3';
 
 export interface StoryInterface{
@@ -8,4 +9,26 @@ export interface StoryInterface{
     expire_by: string;
     timestamp: string;
     media_urls: string;
+}
+
+export function addStory(db : Database, new_story : StoryInterface) : Promise<StoryInterface>{
+    return new Promise((resolve, reject) => {
+        const sql : string = `INSERT INTO Stories (story_id, account_id, platform_id, author, expire_by, timestamp, media_urls) VALUES (?, ?, ?, ?, ?, ?, ?);`;
+        db.run(sql, [new_story.story_id,new_story.account_id,new_story.platform_id,new_story.author,new_story.expire_by,new_story.timestamp,new_story.media_urls],(err) =>{
+            if(err){
+                reject(err);
+            }
+            else{
+                const sql:string = `SELECT * FROM Stories WHERE story_id = ?`
+                db.get(sql, [new_story.story_id], (err, row:StoryInterface) =>{
+                    if(err){
+                        reject(err);
+                    }
+                    else{
+                        resolve(row);
+                    }
+                })
+            }
+        })
+    })
 }
