@@ -32,3 +32,17 @@ export function addStory(db : Database, new_story : StoryInterface) : Promise<St
         })
     })
 }
+
+export function removeStory(db: Database, story_id: string): Promise<boolean>{
+    return new Promise((resolve, reject) => {
+        const sql : string = `DELETE FROM Stories WHERE story_id = ?`;
+        db.run(sql, [story_id], function (err){
+            if(err){
+                reject(err);
+            }
+            else{
+                resolve(this.changes > 0)
+            }
+        })
+    })
+}

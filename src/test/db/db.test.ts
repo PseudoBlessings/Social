@@ -1026,5 +1026,24 @@ describe('Database Stories Table Functionality', () =>{
         });
     });
 
-    
+    test('Delete Story from Database', (done) =>{
+        dbFunctions.Story.addStory(db, {story_id: 'story_1', account_id: 'account_id_1', platform_id: 'platform_1', author: 'Test Author', expire_by: new Date("January 02, 1999 00:00:00").toISOString(), timestamp: new Date ("Janurary 01, 1999 00:00:00").toISOString(), media_urls:"https://picsum.photos/200"}).then((story:StoryInterface) =>{
+            return dbFunctions.Story.removeStory(db, 'story_1')
+        }).then((deleted:boolean) => {
+            const sql : string = `SELECT * FROM Stories WHERE story_id = ?`
+            db.get(sql, ['story_1'], (err, row) =>{
+                if(err){
+                    done(err);
+                }
+                else{
+                    expect(deleted).toBeTruthy();
+                    expect(row).toBeUndefined;
+                    done(err);
+                }
+            })
+        }).catch((err) => {
+            console.error('Error deleting story:', err);
+            done(err);
+        })
+    })
 });
