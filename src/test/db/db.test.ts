@@ -1065,4 +1065,23 @@ describe('Database Stories Table Functionality', () =>{
             done(err);
         })
     })
+
+    test('Getting Story from Database', (done) => {
+        dbFunctions.Story.addStory(db, {story_id: 'story_1', account_id: 'account_id_1', platform_id: 'platform_1', author: 'Test Author', expire_by: new Date("January 02, 1999 00:00:00").toISOString(), timestamp: new Date ("Janurary 01, 1999 00:00:00").toISOString(), media_urls:"https://picsum.photos/200"}).then((story:StoryInterface) =>{
+            return dbFunctions.Story.getStory(db, 'story_1');
+        }).then((story:StoryInterface) => {
+            expect(story).toBeDefined();
+            expect(story.story_id).toBe('story_1');
+            expect(story.account_id).toBe('account_id_1');
+            expect(story.platform_id).toBe('platform_1');
+            expect(story.author).toBe('Test Author');
+            expect(story.media_urls).toBe('https://picsum.photos/200');
+            expect(story.timestamp.toString()).toBe('1999-01-01T10:00:00.000Z');
+            expect(story.expire_by.toString()).toBe('1999-01-02T10:00:00.000Z');
+            done();
+        }).catch((err) => {
+            console.error('Error getting story:', err);
+            done(err);
+        })
+    })
 });
