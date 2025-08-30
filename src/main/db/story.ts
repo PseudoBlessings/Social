@@ -1,3 +1,4 @@
+import { Data } from 'electron';
 import { resolve } from 'path';
 import {Database} from 'sqlite3';
 
@@ -72,4 +73,18 @@ export function updateStory(db: Database, story_id:string, new_story:Partial<Sto
             }
         });
     })
+}
+
+export function getStory(db: Database, story_id:string): Promise<StoryInterface>{
+    return new Promise((resolve, reject) =>{
+        const sql : string = `SELECT * FROM Stories WHERE story_id = ?`;
+        db.get(sql, [story_id], (err, row:StoryInterface) =>{
+            if(err){
+                reject(err);
+            }
+            else{
+                resolve(row);
+            }
+        });
+    });
 }
