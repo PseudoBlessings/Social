@@ -46,3 +46,30 @@ export function removeStory(db: Database, story_id: string): Promise<boolean>{
         })
     })
 }
+
+export function updateStory(db: Database, story_id:string, new_story:Partial<StoryInterface>): Promise<StoryInterface>{
+    return new Promise((resolve, reject) =>{
+        if (!new_story || Object.keys(new_story).length === 0) {
+            return reject(new Error('At least one field must be updated'));
+        }
+        const fields = Object.keys(new_story).map(key => `${key} = ?`).join(', ');
+        const values = Object.values(new_story);
+    
+        const sql = `UPDATE Stories SET ${fields} WHERE story_id = ?`;
+
+        db.run(sql, [...values, story_id], function(err) {
+            if (err) {
+                reject(err);
+            } else {
+                const sql = `SELECT * FROM Stories WHERE story_id = ?`;
+                db.get(sql, [story_id], (err, row: StoryInterface) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(row);
+                    }
+                });
+            }
+        });
+    })
+}
