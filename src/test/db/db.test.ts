@@ -687,7 +687,7 @@ describe('Database Contacts Table Functionality', () =>{
         dbFunctions.Contact.addContact(db, {contact_id: '12345', first_name: 'Test User'}).then((contact:ContactInterface)=>{
             return dbFunctions.Contact.deleteContact(db, contact.contact_id);
         }).then(() =>{
-            const sql = 'SELECT * FROM Contact WHERE contact_id = ?'
+            const sql = 'SELECT * FROM Contacts WHERE contact_id = ?'
             db.get(sql, ['12345'], (err, row:ContactInterface) =>{
                 expect(err).toBeNull;
                 expect(row).toBeNull;
@@ -1037,8 +1037,8 @@ describe('Database Stories Table Functionality', () =>{
                 }
                 else{
                     expect(deleted).toBeTruthy();
-                    expect(row).toBeUndefined;
-                    done(err);
+                    expect(row).toBeUndefined();
+                    done();
                 }
             })
         }).catch((err) => {

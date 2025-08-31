@@ -1,5 +1,3 @@
-import { Data } from 'electron';
-import { resolve } from 'path';
 import {Database} from 'sqlite3';
 
 export interface StoryInterface{
