@@ -6,6 +6,7 @@ import { SessionInterface } from '../../main/db/index';
 import { UserInterface } from '../../main/db/index';
 import { ContactInterface } from '../../main/db/index';
 import { PostInterface } from '../../main/db/index';
+import { StoryInterface } from '../../main/db/index';
 import fs from 'fs';
 import {Database} from 'sqlite3';  
 const dbPath = ':memory:';
@@ -686,7 +687,7 @@ describe('Database Contacts Table Functionality', () =>{
         dbFunctions.Contact.addContact(db, {contact_id: '12345', first_name: 'Test User'}).then((contact:ContactInterface)=>{
             return dbFunctions.Contact.deleteContact(db, contact.contact_id);
         }).then(() =>{
-            const sql = 'SELECT * FROM Contact WHERE contact_id = ?'
+            const sql = 'SELECT * FROM Contacts WHERE contact_id = ?'
             db.get(sql, ['12345'], (err, row:ContactInterface) =>{
                 expect(err).toBeNull;
                 expect(row).toBeNull;
@@ -904,6 +905,182 @@ describe('Database Posts Table Functionality', () =>{
             done();
         }).catch((err) => {
             console.error('Error getting post: ', err);
+            done(err);
+        })
+    })
+});
+
+describe('Database Stories Table Functionality', () =>{
+    beforeAll(async () =>{
+        // include Foreign Key Tables and Rows
+
+        // Social Accounts
+        await new Promise<void>((resolve, reject) => {
+            db.run(`CREATE TABLE IF NOT EXISTS "Social Accounts" (
+                account_id text NOT NULL, 
+                username   text NOT NULL UNIQUE, 
+                password   text, 
+                PRIMARY KEY (account_id)
+                );`, (err) => err ? reject(err) : resolve());
+        });
+
+        // Sessions
+        await new Promise<void>((resolve, reject) => {
+            db.run(`CREATE TABLE IF NOT EXISTS Sessions (
+                session_id text NOT NULL,
+                token      text,
+                PRIMARY KEY (session_id)
+            );`, (err) => err ? reject(err) : resolve());
+        });
+        // Platforms
+        await new Promise<void>((resolve, reject) => {
+            db.run(`CREATE TABLE IF NOT EXISTS Platforms (
+                platform_id   text NOT NULL,
+                session_id    text NOT NULL,
+                platform_name          char(255) NOT NULL UNIQUE,
+                PRIMARY KEY (platform_id),
+                FOREIGN KEY(session_id) REFERENCES Sessions(session_id)
+            );`, (err) => err ? reject(err) : resolve());
+        });
+        // Accounts
+        await new Promise<void>((resolve, reject)=>{
+            db.run(`CREATE TABLE IF NOT EXISTS Accounts (
+                account_id        char(255) NOT NULL, 
+                social_account_id text NOT NULL, 
+                platform_id       text NOT NULL, 
+                session_id        text NOT NULL, 
+                display_name      char(255), 
+                PRIMARY KEY (account_id, platform_id),
+                FOREIGN KEY(social_account_id) REFERENCES "Social Accounts"(account_id), 
+                FOREIGN KEY(platform_id) REFERENCES Platforms(platform_id), 
+                FOREIGN KEY(session_id) REFERENCES Sessions(session_id));
+            );`, (err) => err ? reject(err) : resolve());
+        });
+        // Adding Foreign Rows
+
+        // Social Account Row
+        await new Promise<void>((resolve, reject) => {
+            db.run(`INSERT OR IGNORE INTO "Social Accounts" (account_id, username, password) VALUES (?, ?, ?)`,
+                ['social_account_id_1', 'Test User', 'password'], (err) => err ? reject(err) : resolve());
+        });
+        
+        // Session Row
+        await new Promise<void>((resolve, reject) => {
+            db.run(`INSERT OR IGNORE INTO Sessions (session_id, token) VALUES (?, ?)`,
+                ['session_1', 'token_1'], (err) => err ? reject(err) : resolve());
+        });
+
+        //Platform Row
+        await new Promise<void>((resolve, reject) => {
+            db.run(`INSERT OR IGNORE INTO Platforms (platform_id, session_id, platform_name) VALUES (?, ?, ?)`,
+                ['platform_1', 'session_1', 'Platform One'], (err) => err ? reject(err) : resolve());
+        });
+
+        //Account Row
+        await new Promise<void>((resolve, reject) => {
+            db.run(`INSERT OR IGNORE INTO Accounts (account_id, social_account_id, platform_id, session_id, display_name) VALUES (?, ?, ?, ?, ?)`,
+                ['account_id_1', 'social_account_id_1', 'platform_1', 'session_1', 'Test User'], (err) => err ? reject(err) : resolve());
+        });
+    });
+
+    afterEach(() => {
+        // Ensure the "Stories" table is empty before each test
+        db.run(`DELETE FROM Stories`, [], (err) => {
+            expect(err).toBeNull();
+        });
+    });
+
+    afterAll(() => {
+        // Clean up the database after all tests
+        db.run(`DELETE FROM Stories`, [], (err) => {
+            expect(err).toBeNull();
+        });
+        db.run(`DELETE FROM Accounts`, [], (err) => {
+            expect(err).toBeNull();
+        });
+        db.run(`DELETE FROM Platforms`, [], (err) => {
+            expect(err).toBeNull();
+        });
+        db.run(`DELETE FROM Sessions`, [], (err) => {
+            expect(err).toBeNull();
+        });
+        db.run(`DELETE FROM "Social Accounts"`, [], (err) => {
+            expect(err).toBeNull();
+        });
+    });
+
+    test('Adding Story to Database', (done) => {
+        dbFunctions.Story.addStory(db, {story_id: 'story_1', account_id: 'account_id_1', platform_id: 'platform_1', author: 'Test Author', expire_by: new Date("January 02, 1999 00:00:00").toISOString(), timestamp: new Date ("Janurary 01, 1999 00:00:00").toISOString(), media_urls:"https://picsum.photos/200"}).then((story:StoryInterface) =>{
+            expect(story).toBeDefined();
+            expect(story.story_id).toBe('story_1');
+            expect(story.account_id).toBe('account_id_1');
+            expect(story.platform_id).toBe('platform_1');
+            expect(story.author).toBe('Test Author');
+            expect(story.media_urls).toBe('https://picsum.photos/200');
+            expect(story.timestamp.toString()).toBe('1999-01-01T10:00:00.000Z');
+            expect(story.expire_by.toString()).toBe('1999-01-02T10:00:00.000Z');
+            done();
+        }).catch((err) => {
+            console.error('Error adding story:', err);
+            done(err);
+        });
+    });
+
+    test('Delete Story from Database', (done) =>{
+        dbFunctions.Story.addStory(db, {story_id: 'story_1', account_id: 'account_id_1', platform_id: 'platform_1', author: 'Test Author', expire_by: new Date("January 02, 1999 00:00:00").toISOString(), timestamp: new Date ("Janurary 01, 1999 00:00:00").toISOString(), media_urls:"https://picsum.photos/200"}).then((story:StoryInterface) =>{
+            return dbFunctions.Story.removeStory(db, 'story_1')
+        }).then((deleted:boolean) => {
+            const sql : string = `SELECT * FROM Stories WHERE story_id = ?`
+            db.get(sql, ['story_1'], (err, row) =>{
+                if(err){
+                    done(err);
+                }
+                else{
+                    expect(deleted).toBeTruthy();
+                    expect(row).toBeUndefined();
+                    done();
+                }
+            })
+        }).catch((err) => {
+            console.error('Error deleting story:', err);
+            done(err);
+        })
+    })
+
+    test('Updating Story from Database', (done) =>{
+        dbFunctions.Story.addStory(db, {story_id: 'story_1', account_id: 'account_id_1', platform_id: 'platform_1', author: 'Test Author', expire_by: new Date("January 02, 1999 00:00:00").toISOString(), timestamp: new Date ("Janurary 01, 1999 00:00:00").toISOString(), media_urls:"https://picsum.photos/200"}).then((story:StoryInterface) =>{
+            return dbFunctions.Story.updateStory(db, 'story_1', {author: 'New Author'});
+        }).then((story:StoryInterface) => {
+            expect(story).toBeDefined();
+            expect(story.story_id).toBe('story_1');
+            expect(story.account_id).toBe('account_id_1');
+            expect(story.platform_id).toBe('platform_1');
+            expect(story.author).toBe('New Author');
+            expect(story.media_urls).toBe('https://picsum.photos/200');
+            expect(story.timestamp.toString()).toBe('1999-01-01T10:00:00.000Z');
+            expect(story.expire_by.toString()).toBe('1999-01-02T10:00:00.000Z');
+            done();
+        }).catch((err) => {
+            console.error('Error updating story: ', err);
+            done(err);
+        })
+    })
+
+    test('Getting Story from Database', (done) => {
+        dbFunctions.Story.addStory(db, {story_id: 'story_1', account_id: 'account_id_1', platform_id: 'platform_1', author: 'Test Author', expire_by: new Date("January 02, 1999 00:00:00").toISOString(), timestamp: new Date ("Janurary 01, 1999 00:00:00").toISOString(), media_urls:"https://picsum.photos/200"}).then((story:StoryInterface) =>{
+            return dbFunctions.Story.getStory(db, 'story_1');
+        }).then((story:StoryInterface) => {
+            expect(story).toBeDefined();
+            expect(story.story_id).toBe('story_1');
+            expect(story.account_id).toBe('account_id_1');
+            expect(story.platform_id).toBe('platform_1');
+            expect(story.author).toBe('Test Author');
+            expect(story.media_urls).toBe('https://picsum.photos/200');
+            expect(story.timestamp.toString()).toBe('1999-01-01T10:00:00.000Z');
+            expect(story.expire_by.toString()).toBe('1999-01-02T10:00:00.000Z');
+            done();
+        }).catch((err) => {
+            console.error('Error getting story:', err);
             done(err);
         })
     })
