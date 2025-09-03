@@ -44,3 +44,30 @@ export function removeConversation(db: Database, conversation_id: string): Promi
         });
     });
 }
+
+export function updateConversation(db:Database, conversation_id:string, new_conversation:Partial<ConversationInterface>): Promise<ConversationInterface>{
+    return new Promise((resolve, reject) => {
+        if (!new_conversation || Object.keys(new_conversation).length === 0) {
+                return reject(new Error('At least one field must be updated'));
+        }
+        const fields = Object.keys(new_conversation).map(key => `${key} = ?`).join(', ');
+        const values = Object.values(new_conversation);
+        const sql = `UPDATE Conversations SET ${fields} WHERE conversation_id = ?`;
+        db.run(sql, [...values, conversation_id], function (err) {
+            if (err) {
+                reject(err);
+            }
+            else {
+                const sql:string = `SELECT * FROM Conversations WHERE conversation_id = ?`;
+                db.get(sql,[conversation_id], (err, row:ConversationInterface) =>{
+                    if(err){
+                        reject(err);
+                    }
+                    else{
+                        resolve(row);
+                    }
+                })
+            }
+        });
+    })
+}
