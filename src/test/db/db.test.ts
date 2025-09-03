@@ -1243,4 +1243,23 @@ describe('Database Conversations Table Functionality', () => {
             done(err);
         });
     });
+
+    test('Getting Conversation form Database', (done) => {
+        dbFunctions.Conversation.addConversation(db, {conversation_id: 'conversation_1', account_id: 'account_id_1', platform_id: 'platform_1', conversation_name: 'Test Conversation', is_group_chat: false, }).then((conversation:ConversationInterface) =>{
+            return dbFunctions.Conversation.getConversation(db, conversation.conversation_id);
+        }).then((conversation:ConversationInterface) => {
+            expect(conversation).toBeDefined();
+            expect(conversation.conversation_id).toBe('conversation_1');
+            expect(conversation.account_id).toBe('account_id_1');
+            expect(conversation.platform_id).toBe('platform_1');
+            expect(conversation.conversation_name).toBe('Test Conversation');
+            expect(conversation.is_group_chat).toBeFalsy();
+            expect(conversation.most_recent_message).toBeNull();
+            expect(conversation.most_recent_sender).toBeNull();
+            done();
+        }).catch((err) => {
+            console.error('Error getting conversation:', err);
+            done(err);
+        });
+    });
 })
