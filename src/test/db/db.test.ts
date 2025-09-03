@@ -1203,4 +1203,25 @@ describe('Database Conversations Table Functionality', () => {
             done(err);
         });
     });
+
+    test('Removing Conversation to Database', (done) => {
+        dbFunctions.Conversation.addConversation(db, {conversation_id: 'conversation_1', account_id: 'account_id_1', platform_id: 'platform_1', conversation_name: 'Test Conversation', is_group_chat: false, }).then((conversation:ConversationInterface) =>{
+            return dbFunctions.Conversation.removeConversation(db, conversation.conversation_id);
+        }).then((deleted:boolean) => {
+            const sql : string = `SELECT * FROM Conversations WHERE conversation_id = ?`
+            db.get(sql, ['conversation_1'], (err, row) =>{
+                if(err){
+                    done(err);
+                }
+                else{
+                    expect(deleted).toBeTruthy();
+                    expect(row).toBeUndefined();
+                    done();
+                }
+            })
+        }).catch((err) => {
+            console.error('Error removing conversation:', err);
+            done(err);
+        })
+    });
 })
