@@ -7,6 +7,7 @@ import { UserInterface } from '../../main/db/index';
 import { ContactInterface } from '../../main/db/index';
 import { PostInterface } from '../../main/db/index';
 import { StoryInterface } from '../../main/db/index';
+import { ConversationInterface } from '../../main/db/index';
 import fs from 'fs';
 import {Database} from 'sqlite3';  
 const dbPath = ':memory:';
@@ -1158,31 +1159,48 @@ describe('Database Conversations Table Functionality', () => {
             db.run(`INSERT OR IGNORE INTO Accounts (account_id, social_account_id, platform_id, session_id, display_name) VALUES (?, ?, ?, ?, ?)`,
                 ['account_id_1', 'social_account_id_1', 'platform_1', 'session_1', 'Test User'], (err) => err ? reject(err) : resolve());
         });
+    })
 
-        afterEach(() => {
+    afterEach(() => {
         // Ensure the "Stories" table is empty before each test
         db.run(`DELETE FROM Conversations`, [], (err) => {
             expect(err).toBeNull();
         });
     });
 
-        afterAll(() => {
-            // Clean up the database after all tests
-            db.run(`DELETE FROM Conversations`, [], (err) => {
-                expect(err).toBeNull();
-            });
-            db.run(`DELETE FROM Accounts`, [], (err) => {
-                expect(err).toBeNull();
-            });
-            db.run(`DELETE FROM Platforms`, [], (err) => {
-                expect(err).toBeNull();
-            });
-            db.run(`DELETE FROM Sessions`, [], (err) => {
-                expect(err).toBeNull();
-            });
-            db.run(`DELETE FROM "Social Accounts"`, [], (err) => {
-                expect(err).toBeNull();
-            });
+    afterAll(() => {
+        // Clean up the database after all tests
+        db.run(`DELETE FROM Conversations`, [], (err) => {
+            expect(err).toBeNull();
         });
-    })
+        db.run(`DELETE FROM Accounts`, [], (err) => {
+            expect(err).toBeNull();
+        });
+        db.run(`DELETE FROM Platforms`, [], (err) => {
+            expect(err).toBeNull();
+        });
+        db.run(`DELETE FROM Sessions`, [], (err) => {
+            expect(err).toBeNull();
+        });
+        db.run(`DELETE FROM "Social Accounts"`, [], (err) => {
+            expect(err).toBeNull();
+        });
+    });
+
+    test('Adding Conversation to Database', (done) => {
+        dbFunctions.Conversation.addConversation(db, {conversation_id: 'conversation_1', account_id: 'account_id_1', platform_id: 'platform_1', conversation_name: 'Test Conversation', is_group_chat: false, }).then((conversation:ConversationInterface) =>{
+            expect(conversation).toBeDefined();
+            expect(conversation.conversation_id).toBe('conversation_1');
+            expect(conversation.account_id).toBe('account_id_1');
+            expect(conversation.platform_id).toBe('platform_1');
+            expect(conversation.conversation_name).toBe('Test Conversation');
+            expect(conversation.is_group_chat).toBeFalsy();
+            expect(conversation.most_recent_message).toBeNull();
+            expect(conversation.most_recent_sender).toBeNull();
+            done();
+        }).catch((err) => {
+            console.error('Error adding conversation:', err);
+            done(err);
+        });
+    });
 })
