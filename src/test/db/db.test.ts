@@ -1086,3 +1086,97 @@ describe('Database Stories Table Functionality', () =>{
         })
     })
 });
+
+describe('Database Messages Table Functionality', () =>{
+    beforeAll(async () => {
+        // include Foreign Key Tables and Rows
+        // Conversations Table
+        await new Promise<void>((resolve, reject) => {
+            db.run(`CREATE TABLE IF NOT EXISTS Conversations (
+                conversation_id     text NOT NULL, 
+                account_id          char(255) NOT NULL, 
+                conversation_name   char(255) NOT NULL, 
+                most_recent_message varchar(255), 
+                is_group_chat       boolean NOT NULL, 
+                most_recent_sender  varchar(255), 
+                platform_id         text NOT NULL,
+                PRIMARY KEY (conversation_id),
+                FOREIGN KEY(account_id) REFERENCES Accounts(account_id),
+                FOREIGN KEY(platform_id) REFERENCES Platforms(platform_id)
+                );`, (err) => err ? reject(err) : resolve());
+            });
+        // Social Accounts
+        await new Promise<void>((resolve, reject) => {
+            db.run(`CREATE TABLE IF NOT EXISTS "Social Accounts" (
+                account_id text NOT NULL, 
+                username   text NOT NULL UNIQUE, 
+                password   text, 
+                PRIMARY KEY (account_id)
+                );`, (err) => err ? reject(err) : resolve());
+        });
+
+        // Sessions
+        await new Promise<void>((resolve, reject) => {
+            db.run(`CREATE TABLE IF NOT EXISTS Sessions (
+                session_id text NOT NULL,
+                token      text,
+                PRIMARY KEY (session_id)
+            );`, (err) => err ? reject(err) : resolve());
+        });
+        // Platforms
+        await new Promise<void>((resolve, reject) => {
+            db.run(`CREATE TABLE IF NOT EXISTS Platforms (
+                platform_id   text NOT NULL,
+                session_id    text NOT NULL,
+                platform_name          char(255) NOT NULL UNIQUE,
+                PRIMARY KEY (platform_id),
+                FOREIGN KEY(session_id) REFERENCES Sessions(session_id)
+            );`, (err) => err ? reject(err) : resolve());
+        });
+        // Accounts
+        await new Promise<void>((resolve, reject)=>{
+            db.run(`CREATE TABLE IF NOT EXISTS Accounts (
+                account_id        char(255) NOT NULL, 
+                social_account_id text NOT NULL, 
+                platform_id       text NOT NULL, 
+                session_id        text NOT NULL, 
+                display_name      char(255), 
+                PRIMARY KEY (account_id, platform_id),
+                FOREIGN KEY(social_account_id) REFERENCES "Social Accounts"(account_id), 
+                FOREIGN KEY(platform_id) REFERENCES Platforms(platform_id), 
+                FOREIGN KEY(session_id) REFERENCES Sessions(session_id));
+            );`, (err) => err ? reject(err) : resolve());
+        });
+        // Adding Foreign Rows
+
+        // Social Account Row
+        await new Promise<void>((resolve, reject) => {
+            db.run(`INSERT OR IGNORE INTO "Social Accounts" (account_id, username, password) VALUES (?, ?, ?)`,
+                ['social_account_id_1', 'Test User', 'password'], (err) => err ? reject(err) : resolve());
+        });
+        
+        // Session Row
+        await new Promise<void>((resolve, reject) => {
+            db.run(`INSERT OR IGNORE INTO Sessions (session_id, token) VALUES (?, ?)`,
+                ['session_1', 'token_1'], (err) => err ? reject(err) : resolve());
+        });
+
+        //Platform Row
+        await new Promise<void>((resolve, reject) => {
+            db.run(`INSERT OR IGNORE INTO Platforms (platform_id, session_id, platform_name) VALUES (?, ?, ?)`,
+                ['platform_1', 'session_1', 'Platform One'], (err) => err ? reject(err) : resolve());
+        });
+
+        //Account Row
+        await new Promise<void>((resolve, reject) => {
+            db.run(`INSERT OR IGNORE INTO Accounts (account_id, social_account_id, platform_id, session_id, display_name) VALUES (?, ?, ?, ?, ?)`,
+                ['account_id_1', 'social_account_id_1', 'platform_1', 'session_1', 'Test User'], (err) => err ? reject(err) : resolve());
+        });
+
+        // Conversation Row
+        await new Promise<void>((resolve, reject) => {
+            db.run(`INSERT OR IGNORE INTO Conversations (conversation_id, account_id, conversation_name, is_group_chat, platform_id) VALUES (?, ?, ?, ?, ?)`,
+                ['conversation_1', 'account_id_1', 'Test Conversation', 0, 'platform_1'], (err) => err ? reject(err) : resolve());
+        });
+    })
+})
