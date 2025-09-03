@@ -31,3 +31,16 @@ export function addConversation(db: Database, new_conversation:ConversationInter
         });
     });
 }
+
+export function deleteConversation(db: Database, conversation_id: string): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+        const sql:string = `DELETE FROM Conversations WHERE conversation_id = ?`;
+        db.run(sql, [conversation_id], function (err) {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(this.changes > 0);
+            }
+        });
+    });
+}
