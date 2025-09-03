@@ -71,3 +71,17 @@ export function updateConversation(db:Database, conversation_id:string, new_conv
         });
     })
 }
+
+export function getConversation(db:Database, conversation_id:string): Promise<ConversationInterface | null>{
+    return new Promise((resolve, reject) => {
+        const sql:string = `SELECT * FROM Conversations WHERE conversation_id = ?`;
+        db.get(sql,[conversation_id], (err, row:ConversationInterface) =>{
+            if(err){
+                reject(err);
+            }
+            else{
+                resolve(row || null);
+            }
+        });
+    });
+}
