@@ -1179,4 +1179,33 @@ describe('Database Messages Table Functionality', () =>{
                 ['conversation_1', 'account_id_1', 'Test Conversation', 0, 'platform_1'], (err) => err ? reject(err) : resolve());
         });
     })
+
+    afterEach(() => {
+        // Ensure the "Messages" table is empty before each test
+        db.run(`DELETE FROM Messages`, [], (err) => {
+            expect(err).toBeNull();
+        });
+    });
+
+    afterAll(() => {
+        // Clean up the database after all tests
+        db.run(`DELETE FROM Messages`, [], (err) => {
+            expect(err).toBeNull();
+        });
+        db.run(`DELETE FROM "Conversations"`, [], (err) => {
+            expect(err).toBeNull();
+        });
+        db.run(`DELETE FROM Accounts`, [], (err) => {
+            expect(err).toBeNull();
+        });
+        db.run(`DELETE FROM Platforms`, [], (err) => {
+            expect(err).toBeNull();
+        });
+        db.run(`DELETE FROM Sessions`, [], (err) => {
+            expect(err).toBeNull();
+        });
+        db.run(`DELETE FROM "Social Accounts"`, [], (err) => {
+            expect(err).toBeNull();
+        });
+    });
 })
