@@ -7,6 +7,7 @@ import { UserInterface } from '../../main/db/index';
 import { ContactInterface } from '../../main/db/index';
 import { PostInterface } from '../../main/db/index';
 import { StoryInterface } from '../../main/db/index';
+import { ConversationInterface } from '../../main/db/index';
 import fs from 'fs';
 import {Database} from 'sqlite3';  
 const dbPath = ':memory:';
@@ -1085,3 +1086,180 @@ describe('Database Stories Table Functionality', () =>{
         })
     })
 });
+
+describe('Database Conversations Table Functionality', () => {
+    beforeAll(async ()=>{
+        // include Foreign Key Tables and Rows
+
+        // Social Accounts
+        await new Promise<void>((resolve, reject) => {
+            db.run(`CREATE TABLE IF NOT EXISTS "Social Accounts" (
+                account_id text NOT NULL, 
+                username   text NOT NULL UNIQUE, 
+                password   text, 
+                PRIMARY KEY (account_id)
+                );`, (err) => err ? reject(err) : resolve());
+        });
+
+        // Sessions
+        await new Promise<void>((resolve, reject) => {
+            db.run(`CREATE TABLE IF NOT EXISTS Sessions (
+                session_id text NOT NULL,
+                token      text,
+                PRIMARY KEY (session_id)
+            );`, (err) => err ? reject(err) : resolve());
+        });
+        // Platforms
+        await new Promise<void>((resolve, reject) => {
+            db.run(`CREATE TABLE IF NOT EXISTS Platforms (
+                platform_id   text NOT NULL,
+                session_id    text NOT NULL,
+                platform_name          char(255) NOT NULL UNIQUE,
+                PRIMARY KEY (platform_id),
+                FOREIGN KEY(session_id) REFERENCES Sessions(session_id)
+            );`, (err) => err ? reject(err) : resolve());
+        });
+        // Accounts
+        await new Promise<void>((resolve, reject)=>{
+            db.run(`CREATE TABLE IF NOT EXISTS Accounts (
+                account_id        char(255) NOT NULL, 
+                social_account_id text NOT NULL, 
+                platform_id       text NOT NULL, 
+                session_id        text NOT NULL, 
+                display_name      char(255), 
+                PRIMARY KEY (account_id, platform_id),
+                FOREIGN KEY(social_account_id) REFERENCES "Social Accounts"(account_id), 
+                FOREIGN KEY(platform_id) REFERENCES Platforms(platform_id), 
+                FOREIGN KEY(session_id) REFERENCES Sessions(session_id));
+            );`, (err) => err ? reject(err) : resolve());
+        });
+
+        // Adding Foreign Rows
+
+        // Social Account Row
+        await new Promise<void>((resolve, reject) => {
+            db.run(`INSERT OR IGNORE INTO "Social Accounts" (account_id, username, password) VALUES (?, ?, ?)`,
+                ['social_account_id_1', 'Test User', 'password'], (err) => err ? reject(err) : resolve());
+        });
+        
+        // Session Row
+        await new Promise<void>((resolve, reject) => {
+            db.run(`INSERT OR IGNORE INTO Sessions (session_id, token) VALUES (?, ?)`,
+                ['session_1', 'token_1'], (err) => err ? reject(err) : resolve());
+        });
+
+        //Platform Row
+        await new Promise<void>((resolve, reject) => {
+            db.run(`INSERT OR IGNORE INTO Platforms (platform_id, session_id, platform_name) VALUES (?, ?, ?)`,
+                ['platform_1', 'session_1', 'Platform One'], (err) => err ? reject(err) : resolve());
+        });
+
+        //Account Row
+        await new Promise<void>((resolve, reject) => {
+            db.run(`INSERT OR IGNORE INTO Accounts (account_id, social_account_id, platform_id, session_id, display_name) VALUES (?, ?, ?, ?, ?)`,
+                ['account_id_1', 'social_account_id_1', 'platform_1', 'session_1', 'Test User'], (err) => err ? reject(err) : resolve());
+        });
+    })
+
+    afterEach(() => {
+        // Ensure the "Stories" table is empty before each test
+        db.run(`DELETE FROM Conversations`, [], (err) => {
+            expect(err).toBeNull();
+        });
+    });
+
+    afterAll(() => {
+        // Clean up the database after all tests
+        db.run(`DELETE FROM Conversations`, [], (err) => {
+            expect(err).toBeNull();
+        });
+        db.run(`DELETE FROM Accounts`, [], (err) => {
+            expect(err).toBeNull();
+        });
+        db.run(`DELETE FROM Platforms`, [], (err) => {
+            expect(err).toBeNull();
+        });
+        db.run(`DELETE FROM Sessions`, [], (err) => {
+            expect(err).toBeNull();
+        });
+        db.run(`DELETE FROM "Social Accounts"`, [], (err) => {
+            expect(err).toBeNull();
+        });
+    });
+
+    test('Adding Conversation to Database', (done) => {
+        dbFunctions.Conversation.addConversation(db, {conversation_id: 'conversation_1', account_id: 'account_id_1', platform_id: 'platform_1', conversation_name: 'Test Conversation', is_group_chat: false, }).then((conversation:ConversationInterface) =>{
+            expect(conversation).toBeDefined();
+            expect(conversation.conversation_id).toBe('conversation_1');
+            expect(conversation.account_id).toBe('account_id_1');
+            expect(conversation.platform_id).toBe('platform_1');
+            expect(conversation.conversation_name).toBe('Test Conversation');
+            expect(conversation.is_group_chat).toBeFalsy();
+            expect(conversation.most_recent_message).toBeNull();
+            expect(conversation.most_recent_sender).toBeNull();
+            done();
+        }).catch((err) => {
+            console.error('Error adding conversation:', err);
+            done(err);
+        });
+    });
+
+    test('Removing Conversation to Database', (done) => {
+        dbFunctions.Conversation.addConversation(db, {conversation_id: 'conversation_1', account_id: 'account_id_1', platform_id: 'platform_1', conversation_name: 'Test Conversation', is_group_chat: false, }).then((conversation:ConversationInterface) =>{
+            return dbFunctions.Conversation.removeConversation(db, conversation.conversation_id);
+        }).then((deleted:boolean) => {
+            const sql : string = `SELECT * FROM Conversations WHERE conversation_id = ?`
+            db.get(sql, ['conversation_1'], (err, row) =>{
+                if(err){
+                    done(err);
+                }
+                else{
+                    expect(deleted).toBeTruthy();
+                    expect(row).toBeUndefined();
+                    done();
+                }
+            })
+        }).catch((err) => {
+            console.error('Error removing conversation:', err);
+            done(err);
+        })
+    });
+
+    test('Updating Conversation from Database', (done) => {
+        dbFunctions.Conversation.addConversation(db, {conversation_id: 'conversation_1', account_id: 'account_id_1', platform_id: 'platform_1', conversation_name: 'Test Conversation', is_group_chat: false, }).then((conversation:ConversationInterface) =>{
+            return dbFunctions.Conversation.updateConversation(db, conversation.conversation_id, {most_recent_message: 'Hello, this is a test message.', most_recent_sender: 'Test Sender'});
+        }).then((conversation:ConversationInterface) => {
+            expect(conversation).toBeDefined();
+            expect(conversation.conversation_id).toBe('conversation_1');
+            expect(conversation.account_id).toBe('account_id_1');
+            expect(conversation.platform_id).toBe('platform_1');
+            expect(conversation.conversation_name).toBe('Test Conversation');
+            expect(conversation.is_group_chat).toBeFalsy();
+            expect(conversation.most_recent_message).toBe('Hello, this is a test message.');
+            expect(conversation.most_recent_sender).toBe('Test Sender');
+            done();
+        }).catch((err) => {
+            console.error('Error updating conversation: ', err);
+            done(err);
+        });
+    });
+
+    test('Getting Conversation form Database', (done) => {
+        dbFunctions.Conversation.addConversation(db, {conversation_id: 'conversation_1', account_id: 'account_id_1', platform_id: 'platform_1', conversation_name: 'Test Conversation', is_group_chat: false, }).then((conversation:ConversationInterface) =>{
+            return dbFunctions.Conversation.getConversation(db, conversation.conversation_id);
+        }).then((conversation:ConversationInterface) => {
+            expect(conversation).toBeDefined();
+            expect(conversation.conversation_id).toBe('conversation_1');
+            expect(conversation.account_id).toBe('account_id_1');
+            expect(conversation.platform_id).toBe('platform_1');
+            expect(conversation.conversation_name).toBe('Test Conversation');
+            expect(conversation.is_group_chat).toBeFalsy();
+            expect(conversation.most_recent_message).toBeNull();
+            expect(conversation.most_recent_sender).toBeNull();
+            done();
+        }).catch((err) => {
+            console.error('Error getting conversation:', err);
+            done(err);
+        });
+    });
+})
