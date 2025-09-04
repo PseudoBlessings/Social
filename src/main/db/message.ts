@@ -31,3 +31,17 @@ export function addMessage(db:Database, new_message:MessageInterface):Promise<Me
         });
     });
 }
+
+export function removeMessage(db:Database, message_id:string):Promise<boolean>{
+    return new Promise((resolve, reject)=>{
+        const sql:string = `DELETE FROM Messages WHERE message_id = ?`;
+        db.run(sql, [message_id], function(err){
+            if(err){
+                reject(err);
+            }
+            else{
+                resolve(this.changes > 0);
+            }
+        });
+    });
+}
