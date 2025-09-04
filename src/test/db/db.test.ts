@@ -1260,4 +1260,22 @@ describe('Database Messages Table Functionality', () =>{
             done(err);
         });
     });
+
+    test('Getting Message from Database', (done) => {
+        dbFunctions.Message.addMessage(db, {message_id: 'message_1', conversation_id: 'conversation_1', sender: 'Test Sender', text: 'Hello, this is a test message.', timestamp: new Date("January 01, 1999 00:00:00").toISOString(), has_sent: false}).then((message:MessageInterface) =>{
+            return dbFunctions.Message.getMessage(db, 'message_1');
+        }).then((message:MessageInterface) => {
+            expect(message).toBeDefined();
+            expect(message.message_id).toBe('message_1');
+            expect(message.conversation_id).toBe('conversation_1');
+            expect(message.sender).toBe('Test Sender');
+            expect(message.text).toBe('Hello, this is a test message.');
+            expect(message.timestamp.toString()).toBe('1999-01-01T10:00:00.000Z');
+            expect(message.has_sent).toBe(0);
+            done();
+        }).catch((err) => {
+            console.error('Error getting message:', err);
+            done(err);
+        });
+    });
 })
