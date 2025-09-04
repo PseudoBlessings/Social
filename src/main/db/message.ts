@@ -72,3 +72,17 @@ export function updateMessage(db:Database, message_id:string, updated_fields:Par
         });
     });
 }
+
+export function getMessage(db:Database, message_id:string):Promise<MessageInterface>{
+    return new Promise((resolve, reject)=>{
+        const sql:string = `SELECT * FROM Messages WHERE message_id = ?`;
+        db.get(sql, [message_id], (err, row:MessageInterface)=>{
+            if(err){
+                reject(err);
+            }
+            else{
+                resolve(row);
+            }
+        });
+    });
+}
