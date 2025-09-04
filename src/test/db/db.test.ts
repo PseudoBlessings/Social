@@ -1222,6 +1222,24 @@ describe('Database Messages Table Functionality', () =>{
         }).catch((err) => {
             console.error('Error adding message:', err);
             done(err);
-        })
-    })
+        });
+    });
+
+    test('Deleting Message from Database', (done) =>{
+        dbFunctions.Message.addMessage(db, {message_id: 'message_1', conversation_id: 'conversation_1', sender: 'Test Sender', text: 'Hello, this is a test message.', timestamp: new Date("January 01, 1999 00:00:00").toISOString(), has_sent: false}).then((message:MessageInterface) =>{
+            return dbFunctions.Message.removeMessage(db, 'message_1');
+        }).then((deleted:boolean) => {
+            const sql : string = `SELECT * FROM Messages WHERE message_id = ?`
+            db.get(sql, ['message_1'], (err, row) =>{
+                if(err){
+                    done(err);
+                }
+                else{
+                    expect(deleted).toBeTruthy();
+                    expect(row).toBeUndefined();
+                    done();
+                }
+            });
+        });
+    });
 })
