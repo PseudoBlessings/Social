@@ -6,7 +6,8 @@ export {SessionInterface} from './session';
 export {UserInterface} from './user';
 export {ContactInterface} from './contact';
 export {PostInterface} from './post';
-export { StoryInterface } from './story';
+export {StoryInterface} from './story';
+export {MessageInterface} from './message'
 export * as SocialAccount from './socialaccount';
 export * as Account from './account';
 export * as Platform from './platform';
@@ -15,6 +16,7 @@ export * as User from './user';
 export * as Contact from './contact';
 export * as Post from './post';
 export * as Story from './story';
+export * as Message from './message';
 
 export function initializeDatabase(databasePath: string): Promise<Database> {
     return new Promise((resolve, reject) => {
