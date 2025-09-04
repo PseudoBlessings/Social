@@ -45,3 +45,30 @@ export function removeMessage(db:Database, message_id:string):Promise<boolean>{
         });
     });
 }
+
+export function updateMessage(db:Database, message_id:string, updated_fields:Partial<MessageInterface>):Promise<MessageInterface>{
+    return new Promise((resolve, reject)=>{
+        const fields = Object.keys(updated_fields);
+        const values = Object.values(updated_fields);
+        if(fields.length === 0){
+            return reject(new Error("No fields to update"));
+        }
+        const setClause = fields.map(field => `${field} = ?`).join(', ');
+        const sql:string = `UPDATE Messages SET ${setClause} WHERE message_id = ?`;
+        db.run(sql, [...values, message_id], function(err){
+            if(err){
+                reject(err);
+            }
+            else{
+                db.get(`SELECT * FROM Messages WHERE message_id = ?`, [message_id], (err, row:MessageInterface)=>{
+                    if(err){
+                        reject(err);
+                    }
+                    else{
+                        resolve(row);
+                    }
+                });
+            }
+        });
+    });
+}
