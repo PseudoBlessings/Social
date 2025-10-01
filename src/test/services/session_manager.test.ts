@@ -19,3 +19,15 @@ test('Loading in session', (done) => {
     })
 })
 
+test('Getting name from session', (done) => {
+    SessionManager.loadSession('test_session').then((ses) => {
+        return SessionManager.getName(ses);
+    }).then((session_name) => {
+        expect(session_name).toBe('test_session');
+        done();
+    }).catch((err) => {
+        console.error('Error getting session name:', err)
+        done(err);
+    })
+})
+
