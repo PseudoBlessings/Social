@@ -1,6 +1,5 @@
-import { app, BrowserWindow, Session, session} from 'electron';
-import * as Database from '../db/index';
-
+import { app, Session, session} from 'electron';
+import * as fs from 'fs';
 /*
 Name: loadSession
 Parameter: session_name (string)
@@ -11,8 +10,8 @@ Description:
 export function loadSession(session_name:string):Promise<Session>{
     return new Promise((resolve, reject) => {
         try{
-            const ses = session.fromPartition(session_name);
-            console.log(`Loading Session: ${session_name}`)
+            const ses = session.fromPartition(`persist:${session_name}`, );
+            console.log(`Loading Session: ${session_name}`);
             resolve(ses);
         }catch(error){
             console.error(`Failed to load session ${session_name}:`, error)
@@ -25,7 +24,8 @@ export function loadSession(session_name:string):Promise<Session>{
 Name: getName
 Parameter: ses (Session)
 Description:
-    This fucntion will get the name of the session. The name of the session is discovered through the file path of the session.
+    This fucntion will get the name of the session. The name of the session is discovered 
+    through the file path of the session.
  */
 export function getName(ses:Session):Promise<String>{
     return new Promise((resolve, reject) => {
@@ -41,5 +41,26 @@ export function getName(ses:Session):Promise<String>{
             console.log("Error getting session name:", err);
             reject();
         }
+    });
+}
+
+/*
+Name: deleteSession
+Parameter: ses (Session)
+Description:
+    This fucntion will get the name of the session. The name of the session is discovered 
+    through the file path of the session.
+ */
+export function deleteSession(ses:Session):Promise<void>{
+    return new Promise((resolve, reject) => {
+        const storagePath = ses.getStoragePath();
+        fs.rm(storagePath, { recursive: true, force: true }, (err) => {
+            if (err) {
+                console.error('Error deleting session files:', err);
+                reject(err);
+            } else {
+                resolve();
+            }
+        });
     });
 }
