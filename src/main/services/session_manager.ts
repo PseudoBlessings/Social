@@ -18,5 +18,5 @@ export function loadSession(session_name:string):Promise<Session>{
             console.error(`Failed to load session ${session_name}:`, error)
             reject();
         }
-    })
+    });
 }
