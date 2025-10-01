@@ -1,3 +1,4 @@
+import { Session } from 'electron';
 import * as SessionManager from '../../main/services/session_manager'
 
 jest.mock('electron', () => ({
@@ -30,4 +31,18 @@ test('Getting name from session', (done) => {
         done(err);
     })
 })
+
+test('Deleting session from file', (done) => {
+    SessionManager.loadSession('test_session').then((ses) => {
+        return SessionManager.deleteSession(ses);
+    }).then((deleted) => {
+        expect(deleted).toBeUndefined();
+        done();
+    }).catch((err) => {
+        console.error('Error deleting session:', err);
+        done(err);
+    });
+})
+
+
 
