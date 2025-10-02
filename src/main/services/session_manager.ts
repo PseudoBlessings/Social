@@ -72,7 +72,8 @@ export function deleteSession(ses:Session):Promise<void>{
 
 export async function clearNonEssentialCache(ses:Session):Promise<void>{
     try{
-        await ses.clearStorageData({storages: ['indexdb', 'filesystem', 'localstorage', 'shadercache', 'websql', 'serviceworkers', 'cachestorage']})
+        await ses.clearStorageData({storages: ['indexdb', 'filesystem', 'localstorage', 'shadercache', 'websql', 'serviceworkers', 'cachestorage']});
+        console.log("Cleared non essential cache(this exculdes cookies)")
     }catch(error){
         console.error("Error clearing non-essential cache:", error);
         throw error;
