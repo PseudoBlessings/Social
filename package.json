@@ -11,7 +11,8 @@
     "publish": "electron-forge publish",
     "lint": "eslint --ext .ts,.tsx .",
     "test": "jest",
-    "test:database": "jest src/main/db.ts"
+    "test:database": "jest src/main/test/db//db.test.ts",
+    "test:sessionmanager": "jest src/test/services/session_manager.test.ts"
   },
   "keywords": [],
   "author": {

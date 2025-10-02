@@ -1,0 +1,48 @@
+import { Session } from 'electron';
+import * as SessionManager from '../../main/services/session_manager'
+
+jest.mock('electron', () => ({
+    session: {
+        fromPartition: jest.fn(() => ({
+            getStoragePath: () => 'C:/fake/path/Partitions/test_session'
+        }))
+    }
+}));
+test('Loading in session', (done) => {
+    SessionManager.loadSession('test_session').then((ses) => {
+        const storage_path:String = ses.getStoragePath();
+        const session_name:String = storage_path.match(/Partitions[/\\]([^/\\]+)$/)[1];
+        expect(session_name).toBe('test_session');
+        done();
+    }).catch((err) => {
+        console.error('Error loading session:', err)
+        done(err);
+    })
+})
+
+test('Getting name from session', (done) => {
+    SessionManager.loadSession('test_session').then((ses) => {
+        return SessionManager.getName(ses);
+    }).then((session_name) => {
+        expect(session_name).toBe('test_session');
+        done();
+    }).catch((err) => {
+        console.error('Error getting session name:', err)
+        done(err);
+    })
+})
+
+test('Deleting session from file', (done) => {
+    SessionManager.loadSession('test_session').then((ses) => {
+        return SessionManager.deleteSession(ses);
+    }).then((deleted) => {
+        expect(deleted).toBeUndefined();
+        done();
+    }).catch((err) => {
+        console.error('Error deleting session:', err);
+        done(err);
+    });
+})
+
+
+
