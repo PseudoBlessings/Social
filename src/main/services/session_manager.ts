@@ -53,6 +53,11 @@ Description:
  */
 export function deleteSession(ses:Session):Promise<void>{
     return new Promise((resolve, reject) => {
+        try{
+            ses.flushStorageData();
+        }catch(error){
+            console.error('Error clearing flush storage')
+        }
         const storagePath = ses.getStoragePath();
         fs.rm(storagePath, { recursive: true, force: true }, (err) => {
             if (err) {
@@ -63,4 +68,13 @@ export function deleteSession(ses:Session):Promise<void>{
             }
         });
     });
+}
+
+export async function clearNonEssentialCache(ses:Session):Promise<void>{
+    try{
+        await ses.clearStorageData({storages: ['indexdb', 'filesystem', 'localstorage', 'shadercache', 'websql', 'serviceworkers', 'cachestorage']})
+    }catch(error){
+        console.error("Error clearing non-essential cache:", error);
+        throw error;
+    }
 }
