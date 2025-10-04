@@ -3,20 +3,14 @@ import * as xpath from 'xpath';
 import * as xpath_doc from '@xmldom/xmldom';
 import { BrowserWindow } from 'electron';
 
-export interface PostContentSelector{
+export interface Selector{
     parentSelector?: string;
-    selector:string;
+    selector?: string;
 }
 
-export interface PostInfoSelector{
-    parentSelector?: string;
-    selector:string;
-}
-
-export interface CommentSelector{
-    parentSelector?: string;
-    selector:string;
-}
+export interface PostContentSelector extends Selector{}
+export interface PostInfoSelector extends Selector{}
+export interface CommentSelector extends Selector{}
 
 export abstract class PostScrapper{
     postContentSelector:PostContentSelector;
@@ -33,29 +27,10 @@ export abstract class PostScrapper{
     abstract extractComments(DOM:string): Promise<any>;
 }
 
-export interface StoryContentSelector{
-    parentSelector?: string;
-    selector:string;
-}
-
-export interface StoryInfoSelector{
-    parentSelector?: string;
-    selector:string;
-    IDSelector:string;
-}
-
-export interface StoryNavigationSelector{
-    parentSelector?: string;
-    selector:string;
-    leftSelector:string;
-    rightSelector:string;
-}
-
-export interface StoryInputSelector{
-    parentSelector?: string;
-    selector: string;
-    textBoxSelector: string
-}
+export interface StoryContentSelector extends Selector{}
+export interface StoryInfoSelector extends Selector{}
+export interface StoryNavigationSelector extends Selector{}
+export interface StoryInputSelector extends Selector{}
 export abstract class StoryScrapper {
     storyContentSelector:StoryContentSelector;
     storyInfoSelector:StoryInfoSelector;
@@ -74,21 +49,9 @@ export abstract class StoryScrapper {
     abstract extractStoryInput(DOM:string): Promise<any>;
 }
 
-export interface ConversationTabSelector{
-    parentSelector?: string;
-    selector: string;
-    IDSelector: string;
-}
-
-export interface ConversationSelector{
-    parentSelector?: string;
-    selector: string;
-}
-export interface MessageSelector{
-    parentSelector?: string;
-    selector: string;
-    textBoxSelector: string;
-}
+export interface ConversationTabSelector extends Selector{}
+export interface ConversationSelector extends Selector{}
+export interface MessageSelector extends Selector{}
 export abstract class ConversationScrapper{
     conversationTabSelector : ConversationTabSelector;
     messageSelector : MessageSelector;
