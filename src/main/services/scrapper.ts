@@ -3,6 +3,107 @@ import * as xpath from 'xpath';
 import * as xpath_doc from '@xmldom/xmldom';
 import { BrowserWindow } from 'electron';
 
+export interface PostContentSelector{
+    parentSelector?: string;
+    selector:string;
+}
+
+export interface PostInfoSelector{
+    parentSelector?: string;
+    selector:string;
+}
+
+export interface CommentSelector{
+    parentSelector?: string;
+    selector:string;
+}
+
+export abstract class PostScrapper{
+    postContentSelector:PostContentSelector;
+    postInfoSelector:PostInfoSelector;
+    commentSelector:CommentSelector;
+    constructor(postContentSelector:PostContentSelector,postInfoSelector:PostInfoSelector,commentSelector:CommentSelector) {
+        this.postContentSelector = postContentSelector;
+        this.postInfoSelector = postInfoSelector;
+        this.commentSelector = commentSelector;
+    }
+
+    abstract extractPostContent(DOM:string): Promise<any>;
+    abstract extractPostInfo(DOM:string): Promise<any>;
+    abstract extractComments(DOM:string): Promise<any>;
+}
+
+export interface StoryContentSelector{
+    parentSelector?: string;
+    selector:string;
+}
+
+export interface StoryInfoSelector{
+    parentSelector?: string;
+    selector:string;
+    IDSelector:string;
+}
+
+export interface StoryNavigationSelector{
+    parentSelector?: string;
+    selector:string;
+    leftSelector:string;
+    rightSelector:string;
+}
+
+export interface StoryInputSelector{
+    parentSelector?: string;
+    selector: string;
+    textBoxSelector: string
+}
+export abstract class StoryScrapper {
+    storyContentSelector:StoryContentSelector;
+    storyInfoSelector:StoryInfoSelector;
+    storyNavigationSelector:StoryNavigationSelector;
+    storyInputSelector:StoryInputSelector;
+    constructor(storyContentSelector:StoryContentSelector,storyInfoSelector:StoryInfoSelector,storyNavigationSelector:StoryNavigationSelector,storyInputSelector:StoryInputSelector) {
+        this.storyContentSelector = storyContentSelector;
+        this.storyInfoSelector = storyInfoSelector;
+        this.storyNavigationSelector = storyNavigationSelector;
+        this.storyInputSelector = storyInputSelector;
+    }
+
+    abstract extractStoryContent(DOM:string): Promise<any>;
+    abstract extractStoryInfo(DOM:string): Promise<any>;
+    abstract extractStoryNavigation(DOM:string): Promise<any>;
+    abstract extractStoryInput(DOM:string): Promise<any>;
+}
+
+export interface ConversationTabSelector{
+    parentSelector?: string;
+    selector: string;
+    IDSelector: string;
+}
+
+export interface ConversationSelector{
+    parentSelector?: string;
+    selector: string;
+}
+export interface MessageSelector{
+    parentSelector?: string;
+    selector: string;
+    textBoxSelector: string;
+}
+export abstract class ConversationScrapper{
+    conversationTabSelector : ConversationTabSelector;
+    messageSelector : MessageSelector;
+    conversationSelector : ConversationSelector;
+    constructor(conversationTabSelector:ConversationTabSelector, messageSelector:MessageSelector, conversationSelector:ConversationSelector){
+        this.conversationTabSelector=conversationTabSelector;
+        this.messageSelector=messageSelector;
+        this.conversationSelector=conversationSelector;
+    }
+
+    abstract extractConversationTab(DOM: string): Promise<any>;
+    abstract extractConversation(DOM: string): Promise<any>;
+    abstract extractMessage(DOM: string): Promise<any>;
+}
+
 export async function extractDOM(window:BrowserWindow):Promise<string>{
     const contents = window.webContents;
     try{
