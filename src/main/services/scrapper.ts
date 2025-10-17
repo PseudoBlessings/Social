@@ -13,6 +13,7 @@ export interface PostInfoSelector extends Selector{}
 export interface CommentSelector extends Selector{}
 
 export abstract class PostScrapper{
+    postPageURL:string;
     postContentSelector:PostContentSelector;
     postInfoSelector:PostInfoSelector;
     commentSelector:CommentSelector;
@@ -32,6 +33,7 @@ export interface StoryInfoSelector extends Selector{}
 export interface StoryNavigationSelector extends Selector{}
 export interface StoryInputSelector extends Selector{}
 export abstract class StoryScrapper {
+    storyPageURL:string;
     storyContentSelector:StoryContentSelector;
     storyInfoSelector:StoryInfoSelector;
     storyNavigationSelector:StoryNavigationSelector;
@@ -53,6 +55,7 @@ export interface ConversationTabSelector extends Selector{}
 export interface ConversationSelector extends Selector{}
 export interface MessageSelector extends Selector{}
 export abstract class ConversationScrapper{
+    conversationPageURL:string;
     conversationTabSelector : ConversationTabSelector;
     messageSelector : MessageSelector;
     conversationSelector : ConversationSelector;
